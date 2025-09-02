@@ -2,54 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Map — Argovis Data</title>
+  <title>Argo Float Demo Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    body { margin:0; font-family:Arial, sans-serif; }
-    #map { width:100%; height:100vh; }
+    body { margin:0; font-family: Arial, sans-serif; }
+    #map { width:100%; height:90vh; }
+    #toolbar {
+      padding: 8px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ccc;
+    }
+    #searchBox {
+      padding: 5px;
+      font-size: 14px;
+      width: 250px;
+    }
+    #searchBtn {
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div id="toolbar">
+    🔍 <input id="searchBox" type="text" placeholder="Search by ID or Country"/>
+    <button id="searchBtn">Search</button>
+  </div>
   <div id="map"></div>
+
   <script>
+    // --- Sample static float data with ocean values ---
+    const floatData = [
+      { id: "490001", country: "France", lat: -20, lon: 150, lastReport: "2025-08-21",
+        temperature: "12.3 °C", salinity: "35.1 PSU", pressure: "2000 dbar" },
+      { id: "490002", country: "USA", lat: 10, lon: -140, lastReport: "2025-08-25",
+        temperature: "18.7 °C", salinity: "34.8 PSU", pressure: "1500 dbar" },
+      { id: "490003", country: "Japan", lat: 35, lon: 145, lastReport: "2025-08-27",
+        temperature: "7.9 °C", salinity: "34.6 PSU", pressure: "3000 dbar" },
+      { id: "490004", country: "India", lat: -5, lon: 80, lastReport: "2025-08-29",
+        temperature: "24.5 °C", salinity: "35.3 PSU", pressure: "1000 dbar" }
+    ];
+
     const map = L.map('map').setView([0, 0], 2);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
+      attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    async function loadFloats() {
-      try {
-        const res = await fetch('https://argovis-api.colorado.edu/argovis/argo_platforms');
-        if (!res.ok) throw new Error('Network error');
-        const floats = await res.json();
+    // Group for float markers
+    const floatLayer = L.layerGroup().addTo(map);
 
-        floats.forEach(f => {
-          if (f.latitude && f.longitude) {
-            L.circleMarker([f.latitude, f.longitude], {
-              radius: 5,
-              color: '#00151f',
-              fillColor: '#3eea9a',
-              fillOpacity: 0.8
-            }).bindPopup(`
-              <b>Float ID: ${f.platform_number}</b><br>
-              Country: ${f.country || '—'}<br>
-              Project: ${f.project || '—'}<br>
-              Last Report: ${f.date_update || '—'}
-            `).addTo(map);
-          }
-        });
-      } catch (err) {
-        console.error('Failed to load Argovis data:', err);
-        alert('Could not fetch float positions.');
-      }
+    // Function to plot floats
+    function plotFloats(data) {
+      floatLayer.clearLayers();
+      data.forEach(f => {
+        const marker = L.circleMarker([f.lat, f.lon], {
+          radius: 6,
+          color: "#00151f",
+          fillColor: "#3eea9a",
+          fillOpacity: 0.9
+        }).bindPopup(`
+          <b>🌊 Argo Float</b><br>
+          🆔 ID: ${f.id}<br>
+          🌍 Country: ${f.country}<br>
+          📅 Last Report: ${f.lastReport}<br>
+          📌 Position: ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}<br><br>
+          🌡 Temperature: ${f.temperature}<br>
+          🧂 Salinity: ${f.salinity}<br>
+          📉 Pressure: ${f.pressure}
+        `);
+        floatLayer.addLayer(marker);
+      });
     }
 
-    loadFloats();
+    // Initial load
+    plotFloats(floatData);
+
+    // Search function
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const query = document.getElementById("searchBox").value.trim().toLowerCase();
+      if (!query) {
+        plotFloats(floatData); // reset
+        return;
+      }
+      const results = floatData.filter(f =>
+        f.id.toLowerCase().includes(query) ||
+        f.country.toLowerCase().includes(query)
+      );
+      plotFloats(results);
+    });
+
+    // Add custom pin on click
+    map.on("click", e => {
+      const { lat, lng } = e.latlng;
+      L.marker([lat, lng]).addTo(map)
+        .bindPopup(`
+          <b>📍 Custom Pin</b><br>
+          Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+        `).openPopup();
+    });
   </script>
 </body>
 </html>
