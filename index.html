@@ -1,23 +1,56 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Leaflet Test</title>
+  <title>Argo Float Map (Argovis)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
-    body { margin:0; }
+    body { margin:0; font-family: Arial, sans-serif; }
     #map { width:100%; height:100vh; }
   </style>
 </head>
 <body>
   <div id="map"></div>
+
   <script>
-    const map = L.map('map').setView([20, 0], 2);
+    const map = L.map('map').setView([0, 0], 2);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
+
+    async function loadFloats() {
+      try {
+        const res = await fetch("https://argovis-api.colorado.edu/argo/floats?geo=all");
+        const data = await res.json();
+
+        data.slice(0, 50).forEach(f => { // show first 50 for speed
+          if (f.geolocation && f.geolocation.lat && f.geolocation.lon) {
+            L.circleMarker([f.geolocation.lat, f.geolocation.lon], {
+              radius: 5,
+              color: "#00151f",
+              fillColor: "#3eea9a",
+              fillOpacity: 0.9
+            }).bindPopup(`
+              <b>Float #${f._id}</b><br>
+              Project: ${f.project || "—"}<br>
+              Country: ${f.country || "—"}<br>
+              Last Report: ${f.date_last || "unknown"}
+            `).addTo(map);
+          }
+        });
+
+      } catch (err) {
+        console.error("Failed to load Argovis data:", err);
+      }
+    }
+
+    loadFloats();
   </script>
 </body>
 </html>
