@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Map (Argovis)</title>
+  <title>Argo Float Map (Argovis positions)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -26,27 +26,28 @@
 
     async function loadFloats() {
       try {
-        const res = await fetch("https://argovis-api.colorado.edu/argo/floats?geo=all");
+        const res = await fetch("https://argovis-api.colorado.edu/floats/position?radius=360");
         const data = await res.json();
 
-        data.slice(0, 50).forEach(f => { // show first 50 for speed
-          if (f.geolocation && f.geolocation.lat && f.geolocation.lon) {
-            L.circleMarker([f.geolocation.lat, f.geolocation.lon], {
+        data.forEach(f => {
+          if ('position' in f && f.position) {
+            const {latitude, longitude} = f.position;
+            L.circleMarker([latitude, longitude], {
               radius: 5,
               color: "#00151f",
               fillColor: "#3eea9a",
-              fillOpacity: 0.9
+              fillOpacity: 0.8
             }).bindPopup(`
-              <b>Float #${f._id}</b><br>
-              Project: ${f.project || "—"}<br>
-              Country: ${f.country || "—"}<br>
-              Last Report: ${f.date_last || "unknown"}
+              <b>Float ID: ${f.id}</b><br>
+              Country: ${f.country || '—'}<br>
+              Project: ${f.project || '—'}<br>
+              Last Report: ${f.lastDate || '—'}
             `).addTo(map);
           }
         });
-
       } catch (err) {
-        console.error("Failed to load Argovis data:", err);
+        console.error("Failed to load Argovis positions:", err);
+        alert("Could not fetch float positions.");
       }
     }
 
