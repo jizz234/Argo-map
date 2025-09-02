@@ -1,184 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Live Map</title>
+  <title>Leaflet Test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Leaflet & MarkerCluster -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <style>
-    body { margin:0; font-family: Arial, sans-serif; }
+    body { margin:0; }
     #map { width:100%; height:100vh; }
-    #topBar {
-      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      background: white; padding: 6px 12px; border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-      font-size: 14px; z-index: 1000;
-      display: flex; align-items: center; gap: 10px;
-    }
-    #topBar input[type="text"] {
-      padding: 4px 6px; border:1px solid #ccc; border-radius:4px;
-    }
-    #topBar button {
-      padding: 4px 10px; border: none; border-radius: 4px;
-      background: #1976d2; color: white; cursor: pointer;
-    }
-    #topBar button:hover { background: #1259a5; }
-    #errorBox {
-      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-      background: #f44336; color:white; padding:6px 12px; border-radius:4px;
-      display:none; z-index:1000;
-    }
-    #spin { display:none; margin-left: 5px; }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="topBar">
-    🔍 <input id="searchBox" type="text" placeholder="Search platform/project…" />
-    ⏳ Age ≤ <span id="ageLabel">10</span>d
-    <input id="ageDays" type="range" min="1" max="60" value="10">
-    <button id="reloadBtn">Reload</button>
-    <span id="spin">⏳ Loading…</span>
-  </div>
-  <div id="errorBox"></div>
-
-<script>
-  const ERDDAP_BASE = "https://erddap.ifremer.fr/erddap/tabledap/ArgoFloats.json";
-  const TRAJ_DAYS = 60;
-
-  const $ = sel => document.querySelector(sel);
-  const qs = (url, params) => url + (url.includes('?') ? '&' : '?') + new URLSearchParams(params).toString();
-  const daysAgoISOString = days => new Date(Date.now() - days * 864e5).toISOString();
-  const fmtDate = iso => new Date(iso).toLocaleString();
-  const showError = msg => { const el = $('#errorBox'); el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 8000); };
-
-  const map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([10, 20], 3);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap', maxZoom:7 }).addTo(map);
-  const cluster = L.markerClusterGroup({ disableClusteringAtZoom:6, chunkedLoading:true });
-  map.addLayer(cluster);
-  const pendingTraj = new Map();
-  const styleCircle = color => ({ radius:5, color:'#00151f', weight:1, fillColor:color, fillOpacity:0.9 });
-
-  async function fetchJSON(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
-  }
-
-  async function loadFloats() {
-    $('#spin').style.display = 'inline';
-    cluster.clearLayers();
-
-    const maxAge = +$('#ageDays').value;
-    const filter = $('#searchBox').value.trim().toLowerCase();
-
-    try {
-      const since = daysAgoISOString(7);
-      const params = {
-        "longitude,latitude,time,platform_number,project,country": "",
-        "time>=": since,
-        "orderBy(\"platform_number,time\")": ""
-      };
-      const url = qs(ERDDAP_BASE, params);
-      const data = await fetchJSON(url);
-
-      // ERDDAP JSON format: table.columns and table.data rows
-      const cols = data.table.columnNames;
-      const idx = {};
-      ["platform_number","time","latitude","longitude","project","country"].forEach(c => idx[c] = cols.indexOf(c));
-
-      const latest = {};
-      data.table.rows.forEach(r => {
-        const id = r[idx.platform_number];
-        const time = new Date(r[idx.time]);
-        if (!id) return;
-        if (!latest[id] || time > new Date(latest[id].properties.time)) {
-          latest[id] = { geometry:{type:"Point", coordinates:[r[idx.longitude], r[idx.latitude]]}, properties:{ platform_number:id, time: r[idx.time], project: r[idx.project], country: r[idx.country] } };
-        }
-      });
-
-      let features = Object.values(latest);
-
-      if (filter) {
-        features = features.filter(f =>
-          f.properties.platform_number.toLowerCase().includes(filter) ||
-          (f.properties.project && f.properties.project.toLowerCase().includes(filter))
-        );
-      }
-
-      const layer = L.geoJSON({ type: "FeatureCollection", features }, {
-        pointToLayer: (f, latlng) => {
-          const age = f.properties.time ? (Date.now() - new Date(f.properties.time))/864e5 : Infinity;
-          const color = age <= maxAge ? "#3eea9a" : "#ffaa4d";
-          return L.circleMarker(latlng, styleCircle(color));
-        },
-        onEachFeature: (f, lay) => {
-          const p = f.properties;
-          const pop = `
-            <b>Argo Float</b><br>
-            <table>
-              <tr><td>Platform #</td><td><code>${p.platform_number}</code></td></tr>
-              <tr><td>Country</td><td>${p.country||'–'}</td></tr>
-              <tr><td>Project</td><td>${p.project||'–'}</td></tr>
-              <tr><td>Last</td><td>${p.time ? fmtDate(p.time) : 'unknown'}</td></tr>
-            </table>
-            <div style="margin-top:6px">
-              <button id="traj-${p.platform_number}" data-platform="${p.platform_number}">Draw ${TRAJ_DAYS}-day track</button>
-            </div>`;
-          lay.bindPopup(pop);
-          lay.on('popupopen', () => {
-            document.getElementById(`traj-${p.platform_number}`)?.onclick = () => drawTrajectory(p.platform_number);
-          });
-        }
-      });
-
-      cluster.addLayer(layer);
-
-    } catch (err) {
-      console.error(err);
-      showError("Could not load data from IFREMER ERDDAP (JSON).");
-    } finally {
-      $('#spin').style.display = 'none';
-    }
-  }
-
-  async function drawTrajectory(id) {
-    pendingTraj.get(id) && (map.removeLayer(pendingTraj.get(id)), pendingTraj.delete(id));
-    const since = daysAgoISOString(TRAJ_DAYS);
-    const params = {
-      "longitude,latitude,time,platform_number": "",
-      "platform_number": `"${id}"`,
-      "time>=": since,
-      "orderBy(\"time\")": ""
-    };
-    const url = qs(ERDDAP_BASE, params);
-    try {
-      const data = await fetchJSON(url);
-      const cols = data.table.columnNames;
-      const ix = { lon: cols.indexOf("longitude"), lat: cols.indexOf("latitude") };
-      const coords = data.table.rows.map(r => [r[ix.lat], r[ix.lon]]);
-      if (!coords.length) { showError(`No trajectory for ${id}`); return; }
-      const poly = L.polyline(coords, { color:'#9fb7ff', weight:3 }).addTo(map);
-      pendingTraj.set(id, poly);
-      map.fitBounds(poly.getBounds().pad(0.2));
-    } catch (err) {
-      console.error(err);
-      showError(`Trajectory fetch failed for ${id}`);
-    }
-  }
-
-  $('#reloadBtn').onclick = loadFloats;
-  $('#searchBox').oninput = () => setTimeout(loadFloats, 400);
-  $('#ageDays').oninput = e => $('#ageLabel').textContent = e.target.value;
-
-  loadFloats();
-</script>
+  <script>
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+  </script>
 </body>
 </html>
