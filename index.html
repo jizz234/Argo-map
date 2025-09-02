@@ -2,52 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Map (Argovis positions)</title>
+  <title>Argo Float Map — Argovis Data</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    body { margin:0; font-family: Arial, sans-serif; }
+    body { margin:0; font-family:Arial, sans-serif; }
     #map { width:100%; height:100vh; }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
   <script>
     const map = L.map('map').setView([0, 0], 2);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
     async function loadFloats() {
       try {
-        const res = await fetch("https://argovis-api.colorado.edu/floats/position?radius=360");
-        const data = await res.json();
+        const res = await fetch('https://argovis-api.colorado.edu/argovis/argo_platforms');
+        if (!res.ok) throw new Error('Network error');
+        const floats = await res.json();
 
-        data.forEach(f => {
-          if ('position' in f && f.position) {
-            const {latitude, longitude} = f.position;
-            L.circleMarker([latitude, longitude], {
+        floats.forEach(f => {
+          if (f.latitude && f.longitude) {
+            L.circleMarker([f.latitude, f.longitude], {
               radius: 5,
-              color: "#00151f",
-              fillColor: "#3eea9a",
+              color: '#00151f',
+              fillColor: '#3eea9a',
               fillOpacity: 0.8
             }).bindPopup(`
-              <b>Float ID: ${f.id}</b><br>
+              <b>Float ID: ${f.platform_number}</b><br>
               Country: ${f.country || '—'}<br>
               Project: ${f.project || '—'}<br>
-              Last Report: ${f.lastDate || '—'}
+              Last Report: ${f.date_update || '—'}
             `).addTo(map);
           }
         });
       } catch (err) {
-        console.error("Failed to load Argovis positions:", err);
-        alert("Could not fetch float positions.");
+        console.error('Failed to load Argovis data:', err);
+        alert('Could not fetch float positions.');
       }
     }
 
