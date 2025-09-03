@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Demo Map (Dynamic)</title>
+  <title>Argo Float Demo Map (Modern)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -10,22 +10,49 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    body { margin:0; font-family: Arial, sans-serif; }
-    #map { width:100%; height:90vh; }
+    body { margin:0; font-family: "Segoe UI", Roboto, sans-serif; background:#f0f2f5; }
+    #map { width:100%; height:100vh; }
+
+    /* Floating modern toolbar */
     #toolbar {
-      padding: 8px;
-      background: #f5f5f5;
-      border-bottom: 1px solid #ccc;
+      position: absolute;
+      top: 15px; left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 10px 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      align-items: center;
     }
+
     #searchBox {
-      padding: 5px;
+      padding: 8px 12px;
       font-size: 14px;
-      width: 250px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border 0.3s;
     }
+    #searchBox:focus {
+      border: 1px solid #0078ff;
+    }
+
     #searchBtn {
-      padding: 5px 10px;
+      padding: 8px 14px;
       font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background: #0078ff;
+      color: #fff;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    #searchBtn:hover {
+      background: #005fcc;
     }
   </style>
 </head>
@@ -40,13 +67,13 @@
     // --- Sample float data ---
     let floatData = [
       { id: "490001", country: "France", lat: -20, lon: 150, lastReport: "2025-08-21",
-        temperature: 12.3, salinity: 35.1, pressure: 2000 },
+        temperature: 12.3, salinity: 35.1, pressure: 2000, track: [] },
       { id: "490002", country: "USA", lat: 10, lon: -140, lastReport: "2025-08-25",
-        temperature: 18.7, salinity: 34.8, pressure: 1500 },
+        temperature: 18.7, salinity: 34.8, pressure: 1500, track: [] },
       { id: "490003", country: "Japan", lat: 35, lon: 145, lastReport: "2025-08-27",
-        temperature: 7.9, salinity: 34.6, pressure: 3000 },
+        temperature: 7.9, salinity: 34.6, pressure: 3000, track: [] },
       { id: "490004", country: "India", lat: -5, lon: 80, lastReport: "2025-08-29",
-        temperature: 24.5, salinity: 35.3, pressure: 1000 }
+        temperature: 24.5, salinity: 35.3, pressure: 1000, track: [] }
     ];
 
     const map = L.map('map', {
@@ -60,8 +87,8 @@
     }).addTo(map);
 
     const floatLayer = L.layerGroup().addTo(map);
+    const trajectoryLayer = L.layerGroup().addTo(map);
 
-    // Helper to format float data
     function popupContent(f) {
       return `
         <b>🌊 Argo Float</b><br>
@@ -76,20 +103,31 @@
     }
 
     const floatMarkers = new Map();
+    const floatTracks = new Map();
 
     function plotFloats(data) {
       floatLayer.clearLayers();
+      trajectoryLayer.clearLayers();
       floatMarkers.clear();
+      floatTracks.clear();
+
       data.forEach(f => {
+        f.track.push([f.lat, f.lon]); // initial point
+
         const marker = L.circleMarker([f.lat, f.lon], {
-          radius: 6,
+          radius: 7,
           color: "#00151f",
           fillColor: "#3eea9a",
-          fillOpacity: 0.9
+          fillOpacity: 0.95
         }).bindPopup(popupContent(f));
 
+        const polyline = L.polyline(f.track, { color: "#0078ff", weight: 2 });
+
         floatLayer.addLayer(marker);
+        trajectoryLayer.addLayer(polyline);
+
         floatMarkers.set(f.id, marker);
+        floatTracks.set(f.id, polyline);
       });
     }
 
@@ -99,7 +137,7 @@
     document.getElementById("searchBtn").addEventListener("click", () => {
       const query = document.getElementById("searchBox").value.trim().toLowerCase();
       if (!query) {
-        plotFloats(floatData); // reset
+        plotFloats(floatData);
         return;
       }
       const results = floatData.filter(f =>
@@ -109,28 +147,49 @@
       plotFloats(results);
     });
 
-    // Add custom pin on click
+    // Custom pins
     map.on("click", e => {
       const { lat, lng } = e.latlng;
       const pin = L.marker([lat, lng]).addTo(map)
         .bindPopup(`<b>📍 Custom Pin</b><br>Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}<br><i>(Right-click to remove)</i>`)
         .openPopup();
-
-      // Right-click to remove pin
       pin.on("contextmenu", () => map.removeLayer(pin));
     });
 
-    // --- Simulate live updates ---
+    // --- Simulate live updates + movement ---
     setInterval(() => {
       floatData.forEach(f => {
-        f.temperature += (Math.random() - 0.5) * 0.2; // ±0.1 °C
-        f.salinity += (Math.random() - 0.5) * 0.05;  // ±0.025 PSU
-        f.pressure += (Math.random() - 0.5) * 5;     // ±2.5 dbar
+        // Simulate small random drift
+        f.lat += (Math.random() - 0.5) * 0.2;
+        f.lon += (Math.random() - 0.5) * 0.2;
 
+        // Keep in bounds
+        if (f.lat > 85) f.lat = 85;
+        if (f.lat < -85) f.lat = -85;
+        if (f.lon > 180) f.lon -= 360;
+        if (f.lon < -180) f.lon += 360;
+
+        // Update ocean data
+        f.temperature += (Math.random() - 0.5) * 0.2;
+        f.salinity += (Math.random() - 0.5) * 0.05;
+        f.pressure += (Math.random() - 0.5) * 5;
+
+        // Update track
+        f.track.push([f.lat, f.lon]);
+        if (f.track.length > 20) f.track.shift(); // keep last 20 points
+
+        // Update marker + popup
         const marker = floatMarkers.get(f.id);
-        if (marker) marker.setPopupContent(popupContent(f));
+        if (marker) {
+          marker.setLatLng([f.lat, f.lon]);
+          marker.setPopupContent(popupContent(f));
+        }
+
+        // Update polyline
+        const poly = floatTracks.get(f.id);
+        if (poly) poly.setLatLngs(f.track);
       });
-    }, 5000); // every 5s
+    }, 5000); // update every 5s
   </script>
 </body>
 </html>
