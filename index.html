@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Demo Map (Polished UI)</title>
+  <title>Argo Float Demo Map + Chatbot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -10,17 +10,10 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: "Inter", "Segoe UI", Roboto, sans-serif;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-    }
+    html, body { height: 100%; margin: 0; font-family: "Inter", sans-serif; }
+    #map { height: 100%; width: 100%; }
 
-    /* Floating glassy toolbar */
+    /* Toolbar */
     #toolbar {
       position: absolute;
       top: 20px;
@@ -36,7 +29,6 @@
       align-items: center;
       backdrop-filter: blur(12px);
     }
-
     .field {
       display: flex;
       align-items: center;
@@ -45,15 +37,13 @@
       padding: 6px 12px;
       border: 1px solid #d0d7de;
     }
-    .field input,
-    .field select {
+    .field input, .field select {
       border: none;
       background: transparent;
       outline: none;
       font-size: 14px;
       min-width: 120px;
     }
-
     button {
       padding: 8px 16px;
       border-radius: 30px;
@@ -70,17 +60,58 @@
       box-shadow: 0 5px 14px rgba(0,120,255,0.35);
     }
 
-    .leaflet-popup-content {
+    /* Chatbot styles */
+    #chatbot {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 400px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 2000;
       font-size: 14px;
-      line-height: 1.5;
     }
-    .leaflet-popup-content b {
-      font-size: 15px;
-      color: #0078ff;
+    #chatHeader {
+      background: #0078ff;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+    }
+    #chatMessages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      background: #f5f7fa;
+    }
+    .msg { margin-bottom: 8px; }
+    .bot { color: #0078ff; }
+    .user { text-align: right; color: #333; }
+    #chatInput {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    #chatInput input {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      outline: none;
+    }
+    #chatInput button {
+      border-radius: 0;
+      border: none;
+      background: #0078ff;
+      color: white;
+      padding: 0 16px;
     }
   </style>
 </head>
 <body>
+  <!-- Toolbar -->
   <div id="toolbar">
     <div class="field">🔍 <input id="searchBox" type="text" placeholder="Search ID"/></div>
     <div class="field">🌍 
@@ -101,10 +132,22 @@
     </div>
     <button id="filterBtn">Apply</button>
   </div>
+
+  <!-- Map -->
   <div id="map"></div>
 
+  <!-- Chatbot -->
+  <div id="chatbot">
+    <div id="chatHeader">🤖 OceanBot</div>
+    <div id="chatMessages"></div>
+    <div id="chatInput">
+      <input type="text" id="chatText" placeholder="Type a message..."/>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
   <script>
-    // Sample float data
+    // --- Sample float data ---
     let floatData = [
       { id: "490001", country: "France", lat: -20, lon: 150, lastReport: "2025-08-21",
         temperature: 12.3, salinity: 35.1, pressure: 2000, track: [] },
@@ -210,6 +253,35 @@
         if (poly) poly.setLatLngs(f.track);
       });
     }, 5000);
+
+    // Chatbot logic
+    const chatMessages = document.getElementById("chatMessages");
+    const chatText = document.getElementById("chatText");
+
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.className = "msg " + sender;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const msg = chatText.value.trim();
+      if (!msg) return;
+      addMessage("user", msg);
+      chatText.value = "";
+      // Dummy bot reply (replace with backend call later)
+      setTimeout(() => {
+        if (msg.toLowerCase().includes("float")) {
+          addMessage("bot", "There are currently " + floatData.length + " floats on the map.");
+        } else if (msg.toLowerCase().includes("hello")) {
+          addMessage("bot", "Hello! 🌊 How can I help?");
+        } else {
+          addMessage("bot", "I'm just a demo bot! Ask me about floats.");
+        }
+      }, 600);
+    });
   </script>
 </body>
 </html>
