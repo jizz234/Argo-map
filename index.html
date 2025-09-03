@@ -293,5 +293,132 @@
 
     renderFloats();
   </script>
+
+  <!-- Floating Chatbot -->
+<div id="chatToggle">💬</div>
+<div id="chatbot">
+  <div id="chatHeader">Chatbot</div>
+  <div id="chatMessages"></div>
+  <div id="chatInput">
+    <input type="text" id="chatText" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<style>
+  /* Floating toggle button */
+  #chatToggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: #1f6feb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    z-index: 2001;
+    transition: transform 0.2s, background 0.2s;
+  }
+  #chatToggle:hover {
+    background: #238636;
+    transform: scale(1.1);
+  }
+
+  /* Chatbot container */
+  #chatbot {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    max-height: 400px;
+    display: none;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #161b22;
+    border: 1px solid #30363d;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.7);
+    z-index: 2000;
+  }
+  #chatHeader {
+    background: #1f6feb;
+    padding: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #chatMessages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: #e6edf3;
+    background: #0e1117;
+  }
+  #chatInput {
+    display: flex;
+    border-top: 1px solid #30363d;
+    background: #161b22;
+  }
+  #chatInput input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
+    color: #e6edf3;
+  }
+  #chatInput button {
+    padding: 10px 14px;
+    border: none;
+    cursor: pointer;
+    background: #238636;
+    color: white;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  const chatToggle = document.getElementById("chatToggle");
+  const chatbot = document.getElementById("chatbot");
+  const chatHeader = document.getElementById("chatHeader");
+
+  // Toggle chatbot open/close
+  chatToggle.addEventListener("click", () => {
+    chatbot.style.display = chatbot.style.display === "flex" ? "none" : "flex";
+  });
+  chatHeader.addEventListener("click", () => {
+    chatbot.style.display = "none";
+  });
+
+  function sendMessage() {
+    const input = document.getElementById("chatText");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chatBox = document.getElementById("chatMessages");
+    chatBox.innerHTML += `<div><b>You:</b> ${msg}</div>`;
+
+    // Static bot responses
+    let reply = "🤖 I didn’t understand that.";
+    if (msg.toLowerCase().includes("hello")) reply = "Hi there! 👋";
+    if (msg.toLowerCase().includes("float")) reply = "Argo floats measure 🌊 temperature, salinity & more!";
+    if (msg.toLowerCase().includes("help")) reply = "Try asking about floats, ocean, or data.";
+
+    chatBox.innerHTML += `<div><b>Bot:</b> ${reply}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    input.value = "";
+  }
+</script>
+
+  
 </body>
 </html>
