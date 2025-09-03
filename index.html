@@ -293,37 +293,7 @@
 
     renderFloats();
 
-    // Store custom pins
-const customPins = [];
-
-// Add pin on map click
-map.on("click", function (e) {
-  const { lat, lng } = e.latlng;
-
-  const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-
-  marker.bindPopup(`
-    <div class="popup-card">
-      <div class="popup-header">📍 Custom Pin</div>
-      <div class="popup-body">
-        <div class="popup-row"><b>Lat:</b> ${lat.toFixed(4)}</div>
-        <div class="popup-row"><b>Lng:</b> ${lng.toFixed(4)}</div>
-        <button onclick="deleteCustomPin(${customPins.length})">Delete Pin</button>
-      </div>
-    </div>
-  `);
-
-  customPins.push(marker);
-});
-
-// Delete pin by index
-function deleteCustomPin(index) {
-  if (customPins[index]) {
-    map.removeLayer(customPins[index]);
-    customPins[index] = null;
-  }
-}
-  
+ 
   </script>
 
   <!-- Floating Chatbot -->
