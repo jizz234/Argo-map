@@ -429,7 +429,6 @@ function deleteCustomPin(index) {
     background: #238636;
   }
 </style>
-
 <script>
   const chatToggle = document.getElementById("chatToggle");
   const chatbot = document.getElementById("chatbot");
@@ -438,9 +437,15 @@ function deleteCustomPin(index) {
   const chatText = document.getElementById("chatText");
   const sendBtn = document.getElementById("sendBtn");
 
-  // Toggle open/close
-  chatToggle.onclick = () => chatbot.style.display = "flex";
-  chatHeader.onclick = () => chatbot.style.display = "none";
+  // ✅ Toggle open/close when clicking bubble
+  chatToggle.onclick = () => {
+    chatbot.style.display = chatbot.style.display === "flex" ? "none" : "flex";
+  };
+
+  // Close when clicking ✖
+  chatHeader.onclick = () => {
+    chatbot.style.display = "none";
+  };
 
   // Handle sending messages
   sendBtn.onclick = () => {
@@ -461,11 +466,12 @@ function deleteCustomPin(index) {
     chatText.value = "";
   };
 
-  // Send with Enter
+  // Send with Enter key
   chatText.addEventListener("keydown", e => {
     if (e.key === "Enter") sendBtn.click();
   });
 </script>
+
 
   
 </body>
