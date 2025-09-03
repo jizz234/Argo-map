@@ -13,6 +13,53 @@
     html, body { height: 100%; margin: 0; font-family: "Inter", sans-serif; }
     #map { height: 100%; width: 100%; }
 
+    /* Popup card styling */
+.popup-card {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  min-width: 220px;
+  max-width: 260px;
+}
+.popup-header {
+  font-weight: bold;
+  color: #0078ff;
+  font-size: 15px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+.float-id {
+  font-size: 13px;
+  color: #555;
+  margin-left: 4px;
+}
+.popup-body {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 10px;
+}
+.popup-row {
+  margin: 3px 0;
+}
+.popup-data {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.data-box {
+  flex: 1;
+  text-align: center;
+  background: #f4f9ff;
+  border: 1px solid #d6e8ff;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 13px;
+}
+.data-box .value {
+  font-size: 14px;
+  font-weight: bold;
+  color: #004080;
+}
+
     /* Toolbar */
     #toolbar {
       position: absolute;
@@ -169,18 +216,33 @@
     const floatLayer = L.layerGroup().addTo(map);
     const trajectoryLayer = L.layerGroup().addTo(map);
 
-    function popupContent(f) {
-      return `
-        <b>🌊 Argo Float</b><br>
-        🆔 ID: ${f.id}<br>
-        🌍 Country: ${f.country}<br>
-        📅 Last Report: ${f.lastReport}<br>
-        📌 Pos: ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}<br><br>
-        🌡 Temp: ${f.temperature.toFixed(1)} °C<br>
-        🧂 Salinity: ${f.salinity.toFixed(2)} PSU<br>
-        📉 Pressure: ${f.pressure.toFixed(0)} dbar
-      `;
-    }
+function popupContent(f) {
+  return `
+    <div class="popup-card">
+      <div class="popup-header">🌊 Argo Float <span class="float-id">#${f.id}</span></div>
+      <div class="popup-body">
+        <div class="popup-row">🌍 <b>Country:</b> ${f.country}</div>
+        <div class="popup-row">📅 <b>Last Report:</b> ${f.lastReport}</div>
+        <div class="popup-row">📌 <b>Position:</b> ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}</div>
+      </div>
+      <div class="popup-data">
+        <div class="data-box">
+          🌡 <span class="value">${f.temperature.toFixed(1)} °C</span><br>
+          <small>Temperature</small>
+        </div>
+        <div class="data-box">
+          🧂 <span class="value">${f.salinity.toFixed(2)} PSU</span><br>
+          <small>Salinity</small>
+        </div>
+        <div class="data-box">
+          📉 <span class="value">${f.pressure.toFixed(0)} dbar</span><br>
+          <small>Pressure</small>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 
     const floatMarkers = new Map();
     const floatTracks = new Map();
