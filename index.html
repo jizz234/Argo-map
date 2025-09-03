@@ -157,6 +157,152 @@
   color: #004080;
 }
 
+
+    html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #0e1117;
+  color: #e6edf3;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+  background: #0e1117;
+}
+
+/* Toolbar */
+#toolbar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 23, 30, 0.9);
+  padding: 10px 14px;
+  border-radius: 50px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  align-items: center;
+  backdrop-filter: blur(12px);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  background: #1c212c;
+  border-radius: 30px;
+  padding: 6px 12px;
+  border: 1px solid #2d333b;
+}
+.field input,
+.field select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  min-width: 120px;
+  color: #e6edf3;
+}
+.field input::placeholder { color: #8b949e; }
+.field select option { background: #1c212c; color: #e6edf3; }
+
+/* Buttons */
+button {
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1f6feb, #238636);
+  color: white;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.6);
+}
+
+/* Popup cards */
+.popup-card {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  min-width: 220px;
+  max-width: 260px;
+  background: #161b22;
+  color: #e6edf3;
+  border-radius: 8px;
+  padding: 6px;
+}
+.popup-header {
+  font-weight: bold;
+  color: #58a6ff;
+  font-size: 15px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 4px;
+}
+.float-id {
+  font-size: 13px;
+  color: #8b949e;
+  margin-left: 4px;
+}
+.popup-body {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.popup-row {
+  margin: 3px 0;
+}
+.popup-data {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.data-box {
+  flex: 1;
+  text-align: center;
+  background: #1c212c;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 13px;
+}
+.data-box .value {
+  font-size: 14px;
+  font-weight: bold;
+  color: #79c0ff;
+}
+
+/* Chatbot dark mode */
+#chatbot {
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #e6edf3;
+}
+#chatHeader {
+  background: #1f6feb;
+  color: white;
+}
+#chatMessages {
+  background: #0e1117;
+  color: #e6edf3;
+}
+#chatInput {
+  background: #161b22;
+  border-top: 1px solid #30363d;
+}
+#chatInput input {
+  background: transparent;
+  color: #e6edf3;
+}
+#chatInput button {
+  background: #238636;
+  color: white;
+}
+
     
   </style>
 </head>
