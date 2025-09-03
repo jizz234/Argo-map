@@ -2,351 +2,296 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Demo Map + Chatbot</title>
+  <title>Argo Float Live Map (Dark Theme)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- MarkerCluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: #0e1117;
+      color: #e6edf3;
+    }
 
-        html, body {
-  height: 100%;
-  margin: 0;
-  font-family: "Inter", "Segoe UI", sans-serif;
-  background: #0e1117;
-  color: #e6edf3;
-}
+    #map {
+      height: 100%;
+      width: 100%;
+      background: #0e1117;
+    }
 
-#map {
-  height: 100%;
-  width: 100%;
-  background: #0e1117;
-}
+    /* Toolbar */
+    #toolbar {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 23, 30, 0.9);
+      padding: 10px 14px;
+      border-radius: 50px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      align-items: center;
+      backdrop-filter: blur(12px);
+    }
+    .field {
+      display: flex;
+      align-items: center;
+      background: #1c212c;
+      border-radius: 30px;
+      padding: 6px 12px;
+      border: 1px solid #2d333b;
+    }
+    .field input,
+    .field select {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+      min-width: 120px;
+      color: #e6edf3;
+    }
+    .field input::placeholder { color: #8b949e; }
+    .field select option { background: #1c212c; color: #e6edf3; }
 
-/* Toolbar */
-#toolbar {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20, 23, 30, 0.9);
-  padding: 10px 14px;
-  border-radius: 50px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.6);
-  display: flex;
-  gap: 10px;
-  z-index: 1000;
-  align-items: center;
-  backdrop-filter: blur(12px);
-}
+    /* Buttons */
+    button {
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1f6feb, #238636);
+      color: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.6);
+    }
 
-.field {
-  display: flex;
-  align-items: center;
-  background: #1c212c;
-  border-radius: 30px;
-  padding: 6px 12px;
-  border: 1px solid #2d333b;
-}
-.field input,
-.field select {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  min-width: 120px;
-  color: #e6edf3;
-}
-.field input::placeholder { color: #8b949e; }
-.field select option { background: #1c212c; color: #e6edf3; }
+    /* Popup cards */
+    .popup-card {
+      font-family: "Inter", "Segoe UI", sans-serif;
+      min-width: 220px;
+      max-width: 260px;
+      background: #161b22;
+      color: #e6edf3;
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .popup-header {
+      font-weight: bold;
+      color: #58a6ff;
+      font-size: 15px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 4px;
+    }
+    .float-id {
+      font-size: 13px;
+      color: #8b949e;
+      margin-left: 4px;
+    }
+    .popup-body {
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .popup-row {
+      margin: 3px 0;
+    }
+    .popup-data {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .data-box {
+      flex: 1;
+      text-align: center;
+      background: #1c212c;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 6px;
+      font-size: 13px;
+    }
+    .data-box .value {
+      font-size: 14px;
+      font-weight: bold;
+      color: #79c0ff;
+    }
 
-/* Buttons */
-button {
-  padding: 8px 16px;
-  border-radius: 30px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  background: linear-gradient(135deg, #1f6feb, #238636);
-  color: white;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.6);
-}
+    /* Leaflet popup dark theme override */
+    .leaflet-popup-content-wrapper {
+      background: #161b22 !important;
+      color: #e6edf3 !important;
+      border-radius: 8px;
+      border: 1px solid #30363d !important;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+    }
+    .leaflet-popup-tip {
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+    }
 
-/* Popup cards */
-.popup-card {
-  font-family: "Inter", "Segoe UI", sans-serif;
-  min-width: 220px;
-  max-width: 260px;
-  background: #161b22;
-  color: #e6edf3;
-  border-radius: 8px;
-  padding: 6px;
-}
-.popup-header {
-  font-weight: bold;
-  color: #58a6ff;
-  font-size: 15px;
-  margin-bottom: 6px;
-  border-bottom: 1px solid #30363d;
-  padding-bottom: 4px;
-}
-.float-id {
-  font-size: 13px;
-  color: #8b949e;
-  margin-left: 4px;
-}
-.popup-body {
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-.popup-row {
-  margin: 3px 0;
-}
-.popup-data {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-.data-box {
-  flex: 1;
-  text-align: center;
-  background: #1c212c;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 6px;
-  font-size: 13px;
-}
-.data-box .value {
-  font-size: 14px;
-  font-weight: bold;
-  color: #79c0ff;
-}
+    /* Marker cluster dark theme */
+    .marker-cluster-small {
+      background-color: rgba(88, 166, 255, 0.2) !important;
+      border: 2px solid #58a6ff !important;
+      color: #e6edf3 !important;
+    }
+    .marker-cluster-medium {
+      background-color: rgba(35, 134, 54, 0.25) !important;
+      border: 2px solid #2ea043 !important;
+      color: #e6edf3 !important;
+    }
+    .marker-cluster-large {
+      background-color: rgba(201, 109, 0, 0.25) !important;
+      border: 2px solid #db6d28 !important;
+      color: #e6edf3 !important;
+    }
+    .marker-cluster div {
+      background: transparent !important;
+      color: #e6edf3 !important;
+      font-weight: bold;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      font-size: 13px;
+    }
 
-/* Chatbot dark mode */
-#chatbot {
-  background: #161b22;
-  border: 1px solid #30363d;
-  color: #e6edf3;
-}
-#chatHeader {
-  background: #1f6feb;
-  color: white;
-}
-#chatMessages {
-  background: #0e1117;
-  color: #e6edf3;
-}
-#chatInput {
-  background: #161b22;
-  border-top: 1px solid #30363d;
-}
-#chatInput input {
-  background: transparent;
-  color: #e6edf3;
-}
-#chatInput button {
-  background: #238636;
-  color: white;
-}
-
-
-    
+    /* Pulse animation for cluster hover */
+    .marker-cluster:hover {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 rgba(88, 166, 255, 0.6); }
+      50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(88, 166, 255, 0.8); }
+      100% { transform: scale(1); box-shadow: 0 0 0 rgba(88, 166, 255, 0.6); }
+    }
   </style>
 </head>
 <body>
-  <!-- Toolbar -->
   <div id="toolbar">
-    <div class="field">🔍 <input id="searchBox" type="text" placeholder="Search ID"/></div>
-    <div class="field">🌍 
-      <select id="countryFilter">
-        <option value="">All Countries</option>
-        <option value="France">France</option>
-        <option value="USA">USA</option>
-        <option value="Japan">Japan</option>
-        <option value="India">India</option>
-      </select>
+    <div class="field">
+      <input type="text" id="searchBox" placeholder="🔍 Search float..." />
     </div>
-    <div class="field">📅 
-      <select id="ageFilter">
-        <option value="all">All Ages</option>
-        <option value="7">Last 7 days</option>
-        <option value="30">Last 30 days</option>
-      </select>
+    <div class="field">
+      <label style="margin-right:6px;">Max age:</label>
+      <input type="range" id="ageDays" min="1" max="365" value="90">
+      <span id="ageLabel">90</span>d
     </div>
-    <button id="filterBtn">Apply</button>
+    <button id="reloadBtn">Reload</button>
   </div>
 
-  <!-- Map -->
   <div id="map"></div>
 
-  <!-- Chatbot -->
-  <div id="chatbot">
-    <div id="chatHeader">🤖 OceanBot</div>
-    <div id="chatMessages"></div>
-    <div id="chatInput">
-      <input type="text" id="chatText" placeholder="Type a message..."/>
-      <button id="sendBtn">Send</button>
-    </div>
-  </div>
-
   <script>
-    // --- Sample float data ---
-    let floatData = [
-      { id: "490001", country: "France", lat: -20, lon: 150, lastReport: "2025-08-21",
-        temperature: 12.3, salinity: 35.1, pressure: 2000, track: [] },
-      { id: "490002", country: "USA", lat: 10, lon: -140, lastReport: "2025-08-25",
-        temperature: 18.7, salinity: 34.8, pressure: 1500, track: [] },
-      { id: "490003", country: "Japan", lat: 35, lon: 145, lastReport: "2025-08-27",
-        temperature: 7.9, salinity: 34.6, pressure: 3000, track: [] },
-      { id: "490004", country: "India", lat: -5, lon: 80, lastReport: "2025-08-29",
-        temperature: 24.5, salinity: 35.3, pressure: 1000, track: [] }
+    // Sample static data (replace with ERDDAP later)
+    const sampleFloats = [
+      {
+        lat: 37.7749, lon: -122.4194,
+        platform: "490001",
+        country: "USA",
+        project: "Argo",
+        time: "2025-08-25T12:00:00Z",
+        temperature: 14.2,
+        salinity: 35.1
+      },
+      {
+        lat: -33.8688, lon: 151.2093,
+        platform: "490002",
+        country: "Australia",
+        project: "Argo",
+        time: "2025-08-20T15:30:00Z",
+        temperature: 18.5,
+        salinity: 34.8
+      },
+      {
+        lat: 35.6895, lon: 139.6917,
+        platform: "490003",
+        country: "Japan",
+        project: "Argo",
+        time: "2025-08-18T09:15:00Z",
+        temperature: 20.1,
+        salinity: 34.6
+      }
     ];
 
-    const map = L.map('map', { minZoom: 2 }).setView([10, 20], 2);
+    const map = L.map('map', {
+      worldCopyJump: true,
+      minZoom: 2
+    }).setView([20, 0], 2);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      noWrap: true
+      attribution:'© OpenStreetMap',
+      maxZoom: 7
     }).addTo(map);
 
-    const floatLayer = L.layerGroup().addTo(map);
-    const trajectoryLayer = L.layerGroup().addTo(map);
+    const cluster = L.markerClusterGroup({ disableClusteringAtZoom: 6, chunkedLoading: true });
+    map.addLayer(cluster);
 
-function popupContent(f) {
-  return `
-    <div class="popup-card">
-      <div class="popup-header">🌊 Argo Float <span class="float-id">#${f.id}</span></div>
-      <div class="popup-body">
-        <div class="popup-row">🌍 <b>Country:</b> ${f.country}</div>
-        <div class="popup-row">📅 <b>Last Report:</b> ${f.lastReport}</div>
-        <div class="popup-row">📌 <b>Position:</b> ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}</div>
-      </div>
-      <div class="popup-data">
-        <div class="data-box">
-          🌡 <span class="value">${f.temperature.toFixed(1)} °C</span><br>
-          <small>Temperature</small>
-        </div>
-        <div class="data-box">
-          🧂 <span class="value">${f.salinity.toFixed(2)} PSU</span><br>
-          <small>Salinity</small>
-        </div>
-        <div class="data-box">
-          📉 <span class="value">${f.pressure.toFixed(0)} dbar</span><br>
-          <small>Pressure</small>
-        </div>
-      </div>
-    </div>
-  `;
-}
+    function renderFloats() {
+      cluster.clearLayers();
+      const maxAge = +document.getElementById("ageDays").value;
+      const search = document.getElementById("searchBox").value.trim().toLowerCase();
 
+      sampleFloats.forEach(f => {
+        const ageDays = (Date.now() - new Date(f.time)) / 864e5;
+        if (ageDays > maxAge) return;
+        if (search && !f.country.toLowerCase().includes(search) && !f.platform.includes(search)) return;
 
-    const floatMarkers = new Map();
-    const floatTracks = new Map();
-
-    function plotFloats(data) {
-      floatLayer.clearLayers();
-      trajectoryLayer.clearLayers();
-      floatMarkers.clear();
-      floatTracks.clear();
-      data.forEach(f => {
-        f.track.push([f.lat, f.lon]);
         const marker = L.circleMarker([f.lat, f.lon], {
-          radius: 8,
-          color: "#004080",
-          fillColor: "#00d084",
-          fillOpacity: 0.95
-        }).bindPopup(popupContent(f));
-        const polyline = L.polyline(f.track, { color: "#0078ff", weight: 2 });
-        floatLayer.addLayer(marker);
-        trajectoryLayer.addLayer(polyline);
-        floatMarkers.set(f.id, marker);
-        floatTracks.set(f.id, polyline);
+          radius: 6,
+          fillColor: ageDays <= maxAge ? "#3eea9a" : "#ffaa4d",
+          color: "#00151f",
+          weight: 1,
+          fillOpacity: 0.9
+        });
+
+        marker.bindPopup(`
+          <div class="popup-card">
+            <div class="popup-header">Argo Float <span class="float-id">#${f.platform}</span></div>
+            <div class="popup-body">
+              <div class="popup-row"><b>Country:</b> ${f.country}</div>
+              <div class="popup-row"><b>Project:</b> ${f.project}</div>
+              <div class="popup-row"><b>Last Report:</b> ${new Date(f.time).toLocaleString()}</div>
+              <div class="popup-row"><b>Position:</b> ${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}</div>
+            </div>
+            <div class="popup-data">
+              <div class="data-box">
+                <div>🌡 Temp</div>
+                <div class="value">${f.temperature}°C</div>
+              </div>
+              <div class="data-box">
+                <div>🧂 Salinity</div>
+                <div class="value">${f.salinity}</div>
+              </div>
+            </div>
+          </div>
+        `);
+
+        cluster.addLayer(marker);
       });
     }
-    plotFloats(floatData);
 
-    // Filters
-    document.getElementById("filterBtn").addEventListener("click", () => {
-      const query = document.getElementById("searchBox").value.trim().toLowerCase();
-      const country = document.getElementById("countryFilter").value;
-      const age = document.getElementById("ageFilter").value;
-      const now = new Date("2025-09-01");
-      let results = floatData;
-      if (query) results = results.filter(f => f.id.toLowerCase().includes(query));
-      if (country) results = results.filter(f => f.country === country);
-      if (age !== "all") {
-        const cutoff = new Date(now.getTime() - parseInt(age)*864e5);
-        results = results.filter(f => new Date(f.lastReport) >= cutoff);
-      }
-      plotFloats(results);
+    document.getElementById("reloadBtn").addEventListener("click", renderFloats);
+    document.getElementById("ageDays").addEventListener("input", e => {
+      document.getElementById("ageLabel").textContent = e.target.value;
+      renderFloats();
     });
+    document.getElementById("searchBox").addEventListener("input", () => setTimeout(renderFloats, 300));
 
-    // Custom pins
-    map.on("click", e => {
-      const { lat, lng } = e.latlng;
-      const pin = L.marker([lat, lng]).addTo(map)
-        .bindPopup(`<b>📍 Custom Pin</b><br>${lat.toFixed(4)}, ${lng.toFixed(4)}<br><i>Right-click to remove</i>`)
-        .openPopup();
-      pin.on("contextmenu", () => map.removeLayer(pin));
-    });
-
-    // Live updates
-    setInterval(() => {
-      floatData.forEach(f => {
-        f.lat += (Math.random() - 0.5) * 0.1;
-        f.lon += (Math.random() - 0.5) * 0.1;
-        if (f.lon > 180) f.lon -= 360;
-        if (f.lon < -180) f.lon += 360;
-        f.temperature += (Math.random() - 0.5) * 0.2;
-        f.salinity += (Math.random() - 0.5) * 0.05;
-        f.pressure += (Math.random() - 0.5) * 5;
-        f.track.push([f.lat, f.lon]);
-        if (f.track.length > 25) f.track.shift();
-        const marker = floatMarkers.get(f.id);
-        if (marker) {
-          marker.setLatLng([f.lat, f.lon]);
-          marker.setPopupContent(popupContent(f));
-        }
-        const poly = floatTracks.get(f.id);
-        if (poly) poly.setLatLngs(f.track);
-      });
-    }, 5000);
-
-    // Chatbot logic
-    const chatMessages = document.getElementById("chatMessages");
-    const chatText = document.getElementById("chatText");
-
-    function addMessage(sender, text) {
-      const div = document.createElement("div");
-      div.className = "msg " + sender;
-      div.textContent = text;
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    document.getElementById("sendBtn").addEventListener("click", () => {
-      const msg = chatText.value.trim();
-      if (!msg) return;
-      addMessage("user", msg);
-      chatText.value = "";
-      // Dummy bot reply (replace with backend call later)
-      setTimeout(() => {
-        if (msg.toLowerCase().includes("float")) {
-          addMessage("bot", "There are currently " + floatData.length + " floats on the map.");
-        } else if (msg.toLowerCase().includes("hello")) {
-          addMessage("bot", "Hello! 🌊 How can I help?");
-        } else {
-          addMessage("bot", "I'm just a demo bot! Ask me about floats.");
-        }
-      }, 600);
-    });
+    renderFloats();
   </script>
 </body>
 </html>
