@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Demo Map</title>
+  <title>Argo Float Demo Map (Dynamic)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -37,54 +37,65 @@
   <div id="map"></div>
 
   <script>
-    // --- Sample static float data with ocean values ---
-    const floatData = [
+    // --- Sample float data ---
+    let floatData = [
       { id: "490001", country: "France", lat: -20, lon: 150, lastReport: "2025-08-21",
-        temperature: "12.3 °C", salinity: "35.1 PSU", pressure: "2000 dbar" },
+        temperature: 12.3, salinity: 35.1, pressure: 2000 },
       { id: "490002", country: "USA", lat: 10, lon: -140, lastReport: "2025-08-25",
-        temperature: "18.7 °C", salinity: "34.8 PSU", pressure: "1500 dbar" },
+        temperature: 18.7, salinity: 34.8, pressure: 1500 },
       { id: "490003", country: "Japan", lat: 35, lon: 145, lastReport: "2025-08-27",
-        temperature: "7.9 °C", salinity: "34.6 PSU", pressure: "3000 dbar" },
+        temperature: 7.9, salinity: 34.6, pressure: 3000 },
       { id: "490004", country: "India", lat: -5, lon: 80, lastReport: "2025-08-29",
-        temperature: "24.5 °C", salinity: "35.3 PSU", pressure: "1000 dbar" }
+        temperature: 24.5, salinity: 35.3, pressure: 1000 }
     ];
 
-    const map = L.map('map').setView([0, 0], 2);
+    const map = L.map('map', {
+      worldCopyJump: false,
+      minZoom: 2
+    }).setView([0, 0], 2);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+      attribution: '© OpenStreetMap contributors',
+      noWrap: true
     }).addTo(map);
 
-    // Group for float markers
     const floatLayer = L.layerGroup().addTo(map);
 
-    // Function to plot floats
+    // Helper to format float data
+    function popupContent(f) {
+      return `
+        <b>🌊 Argo Float</b><br>
+        🆔 ID: ${f.id}<br>
+        🌍 Country: ${f.country}<br>
+        📅 Last Report: ${f.lastReport}<br>
+        📌 Position: ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}<br><br>
+        🌡 Temperature: ${f.temperature.toFixed(1)} °C<br>
+        🧂 Salinity: ${f.salinity.toFixed(2)} PSU<br>
+        📉 Pressure: ${f.pressure.toFixed(0)} dbar
+      `;
+    }
+
+    const floatMarkers = new Map();
+
     function plotFloats(data) {
       floatLayer.clearLayers();
+      floatMarkers.clear();
       data.forEach(f => {
         const marker = L.circleMarker([f.lat, f.lon], {
           radius: 6,
           color: "#00151f",
           fillColor: "#3eea9a",
           fillOpacity: 0.9
-        }).bindPopup(`
-          <b>🌊 Argo Float</b><br>
-          🆔 ID: ${f.id}<br>
-          🌍 Country: ${f.country}<br>
-          📅 Last Report: ${f.lastReport}<br>
-          📌 Position: ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}<br><br>
-          🌡 Temperature: ${f.temperature}<br>
-          🧂 Salinity: ${f.salinity}<br>
-          📉 Pressure: ${f.pressure}
-        `);
+        }).bindPopup(popupContent(f));
+
         floatLayer.addLayer(marker);
+        floatMarkers.set(f.id, marker);
       });
     }
 
-    // Initial load
     plotFloats(floatData);
 
-    // Search function
+    // Search functionality
     document.getElementById("searchBtn").addEventListener("click", () => {
       const query = document.getElementById("searchBox").value.trim().toLowerCase();
       if (!query) {
@@ -101,12 +112,25 @@
     // Add custom pin on click
     map.on("click", e => {
       const { lat, lng } = e.latlng;
-      L.marker([lat, lng]).addTo(map)
-        .bindPopup(`
-          <b>📍 Custom Pin</b><br>
-          Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}
-        `).openPopup();
+      const pin = L.marker([lat, lng]).addTo(map)
+        .bindPopup(`<b>📍 Custom Pin</b><br>Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}<br><i>(Right-click to remove)</i>`)
+        .openPopup();
+
+      // Right-click to remove pin
+      pin.on("contextmenu", () => map.removeLayer(pin));
     });
+
+    // --- Simulate live updates ---
+    setInterval(() => {
+      floatData.forEach(f => {
+        f.temperature += (Math.random() - 0.5) * 0.2; // ±0.1 °C
+        f.salinity += (Math.random() - 0.5) * 0.05;  // ±0.025 PSU
+        f.pressure += (Math.random() - 0.5) * 5;     // ±2.5 dbar
+
+        const marker = floatMarkers.get(f.id);
+        if (marker) marker.setPopupContent(popupContent(f));
+      });
+    }, 5000); // every 5s
   </script>
 </body>
 </html>
