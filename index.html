@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Argo Float Live Map (Dark Theme)</title>
+  <title>Navy Assistant – Argo Floats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -27,6 +27,7 @@
       height: 100%;
       width: 100%;
       background: #0e1117;
+      display: none; /* hidden until user opens map */
     }
 
     /* Toolbar */
@@ -39,7 +40,7 @@
       padding: 10px 14px;
       border-radius: 50px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.6);
-      display: flex;
+      display: none; /* hidden until map is open */
       gap: 10px;
       z-index: 1000;
       align-items: center;
@@ -53,8 +54,7 @@
       padding: 6px 12px;
       border: 1px solid #2d333b;
     }
-    .field input,
-    .field select {
+    .field input {
       border: none;
       background: transparent;
       outline: none;
@@ -63,7 +63,6 @@
       color: #e6edf3;
     }
     .field input::placeholder { color: #8b949e; }
-    .field select option { background: #1c212c; color: #e6edf3; }
 
     /* Buttons */
     button {
@@ -81,6 +80,86 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 14px rgba(0,0,0,0.6);
     }
+
+    /* Chatbot container */
+    #chatbot {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      max-height: 500px;
+      display: flex; /* shown by default */
+      flex-direction: column;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #161b22;
+      border: 1px solid #30363d;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.7);
+      z-index: 2000;
+    }
+
+    #chatHeader {
+      background: #1f6feb;
+      padding: 10px;
+      color: white;
+      font-weight: bold;
+      font-family: "Inter", sans-serif;
+    }
+
+    #chatMessages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+      color: #e6edf3;
+      background: #0e1117;
+    }
+
+    #chatInput {
+      display: flex;
+      border-top: 1px solid #30363d;
+      background: #161b22;
+    }
+
+    #chatInput input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: #0e1117;
+      color: #e6edf3;
+    }
+
+    #chatInput button {
+      padding: 10px 14px;
+      border: none;
+      cursor: pointer;
+      background: #1f6feb;
+      color: white;
+      font-weight: bold;
+    }
+    #chatInput button:hover { background: #238636; }
+
+    /* Floating button */
+    #chatToggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background: #1f6feb;
+      color: white;
+      border-radius: 50%;
+      display: none; /* hidden until map is open */
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      z-index: 2001;
+    }
+    #chatToggle:hover { background: #238636; }
 
     /* Popup cards */
     .popup-card {
@@ -100,18 +179,7 @@
       border-bottom: 1px solid #30363d;
       padding-bottom: 4px;
     }
-    .float-id {
-      font-size: 13px;
-      color: #8b949e;
-      margin-left: 4px;
-    }
-    .popup-body {
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-    .popup-row {
-      margin: 3px 0;
-    }
+    .popup-row { margin: 3px 0; }
     .popup-data {
       display: flex;
       justify-content: space-between;
@@ -126,61 +194,20 @@
       padding: 6px;
       font-size: 13px;
     }
-    .data-box .value {
-      font-size: 14px;
-      font-weight: bold;
-      color: #79c0ff;
-    }
+    .data-box .value { font-size: 14px; font-weight: bold; color: #79c0ff; }
 
-    /* Leaflet popup dark theme override */
+    /* Leaflet popup dark theme */
     .leaflet-popup-content-wrapper {
       background: #161b22 !important;
       color: #e6edf3 !important;
       border-radius: 8px;
       border: 1px solid #30363d !important;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.7);
     }
-    .leaflet-popup-tip {
-      background: #161b22 !important;
-      border: 1px solid #30363d !important;
-    }
-
-    /* Marker cluster dark theme */
-    .marker-cluster-small {
-      background-color: rgba(88, 166, 255, 0.2) !important;
-      border: 2px solid #58a6ff !important;
-      color: #e6edf3 !important;
-    }
-    .marker-cluster-medium {
-      background-color: rgba(35, 134, 54, 0.25) !important;
-      border: 2px solid #2ea043 !important;
-      color: #e6edf3 !important;
-    }
-    .marker-cluster-large {
-      background-color: rgba(201, 109, 0, 0.25) !important;
-      border: 2px solid #db6d28 !important;
-      color: #e6edf3 !important;
-    }
-    .marker-cluster div {
-      background: transparent !important;
-      color: #e6edf3 !important;
-      font-weight: bold;
-      font-family: "Inter", "Segoe UI", sans-serif;
-      font-size: 13px;
-    }
-
-    /* Pulse animation for cluster hover */
-    .marker-cluster:hover {
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 rgba(88, 166, 255, 0.6); }
-      50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(88, 166, 255, 0.8); }
-      100% { transform: scale(1); box-shadow: 0 0 0 rgba(88, 166, 255, 0.6); }
-    }
+    .leaflet-popup-tip { background: #161b22 !important; border: 1px solid #30363d !important; }
   </style>
 </head>
 <body>
+  <!-- Toolbar -->
   <div id="toolbar">
     <div class="field">
       <input type="text" id="searchBox" placeholder="🔍 Search float..." />
@@ -193,286 +220,131 @@
     <button id="reloadBtn">Reload</button>
   </div>
 
+  <!-- Map -->
   <div id="map"></div>
 
-  <script>
-    // Sample static data (replace with ERDDAP later)
-    const sampleFloats = [
-      {
-        lat: 37.7749, lon: -122.4194,
-        platform: "490001",
-        country: "USA",
-        project: "Argo",
-        time: "2025-08-25T12:00:00Z",
-        temperature: 14.2,
-        salinity: 35.1
-      },
-      {
-        lat: -33.8688, lon: 151.2093,
-        platform: "490002",
-        country: "Australia",
-        project: "Argo",
-        time: "2025-08-20T15:30:00Z",
-        temperature: 18.5,
-        salinity: 34.8
-      },
-      {
-        lat: 35.6895, lon: 139.6917,
-        platform: "490003",
-        country: "Japan",
-        project: "Argo",
-        time: "2025-08-18T09:15:00Z",
-        temperature: 20.1,
-        salinity: 34.6
-      }
-    ];
+  <!-- Chatbot (default open) -->
+  <div id="chatbot">
+    <div id="chatHeader">Navy Assistant</div>
+    <div id="chatMessages">
+      <div><b>Bot:</b> Welcome, sailor 👋 Do you want to see the map of Argo floats?</div>
+    </div>
+    <div id="chatInput">
+      <input type="text" id="chatText" placeholder="Type a message..." />
+      <button id="sendBtn">Send</button>
+    </div>
+    <button id="openMapBtn" style="margin:10px;">🌍 Open Map</button>
+  </div>
 
-    const map = L.map('map', {
-      worldCopyJump: true,
-      minZoom: 2
-    }).setView([20, 0], 2);
+  <!-- Floating button -->
+  <div id="chatToggle">💬</div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:'© OpenStreetMap',
-      maxZoom: 7
-    }).addTo(map);
+<script>
+  // --- SAMPLE FLOAT DATA ---
+  const sampleFloats = [
+    { lat: 37.7749, lon: -122.4194, platform: "490001", country: "USA", project: "Argo", time: "2025-08-25T12:00:00Z", temperature: 14.2, salinity: 35.1 },
+    { lat: -33.8688, lon: 151.2093, platform: "490002", country: "Australia", project: "Argo", time: "2025-08-20T15:30:00Z", temperature: 18.5, salinity: 34.8 },
+    { lat: 35.6895, lon: 139.6917, platform: "490003", country: "Japan", project: "Argo", time: "2025-08-18T09:15:00Z", temperature: 20.1, salinity: 34.6 }
+  ];
 
-    const cluster = L.markerClusterGroup({ disableClusteringAtZoom: 6, chunkedLoading: true });
-    map.addLayer(cluster);
+  // --- MAP SETUP ---
+  const map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap', maxZoom: 7 }).addTo(map);
+  const cluster = L.markerClusterGroup({ disableClusteringAtZoom: 6, chunkedLoading: true });
+  map.addLayer(cluster);
 
-    function renderFloats() {
-      cluster.clearLayers();
-      const maxAge = +document.getElementById("ageDays").value;
-      const search = document.getElementById("searchBox").value.trim().toLowerCase();
+  function renderFloats() {
+    cluster.clearLayers();
+    const maxAge = +document.getElementById("ageDays").value;
+    const search = document.getElementById("searchBox").value.trim().toLowerCase();
 
-      sampleFloats.forEach(f => {
-        const ageDays = (Date.now() - new Date(f.time)) / 864e5;
-        if (ageDays > maxAge) return;
-        if (search && !f.country.toLowerCase().includes(search) && !f.platform.includes(search)) return;
+    sampleFloats.forEach(f => {
+      const ageDays = (Date.now() - new Date(f.time)) / 864e5;
+      if (ageDays > maxAge) return;
+      if (search && !f.country.toLowerCase().includes(search) && !f.platform.includes(search)) return;
 
-        const marker = L.circleMarker([f.lat, f.lon], {
-          radius: 6,
-          fillColor: ageDays <= maxAge ? "#3eea9a" : "#ffaa4d",
-          color: "#00151f",
-          weight: 1,
-          fillOpacity: 0.9
-        });
-
-        marker.bindPopup(`
-          <div class="popup-card">
-            <div class="popup-header">Argo Float <span class="float-id">#${f.platform}</span></div>
-            <div class="popup-body">
-              <div class="popup-row"><b>Country:</b> ${f.country}</div>
-              <div class="popup-row"><b>Project:</b> ${f.project}</div>
-              <div class="popup-row"><b>Last Report:</b> ${new Date(f.time).toLocaleString()}</div>
-              <div class="popup-row"><b>Position:</b> ${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}</div>
-            </div>
-            <div class="popup-data">
-              <div class="data-box">
-                <div>🌡 Temp</div>
-                <div class="value">${f.temperature}°C</div>
-              </div>
-              <div class="data-box">
-                <div>🧂 Salinity</div>
-                <div class="value">${f.salinity}</div>
-              </div>
-            </div>
-          </div>
-        `);
-
-        cluster.addLayer(marker);
+      const marker = L.circleMarker([f.lat, f.lon], {
+        radius: 6,
+        fillColor: ageDays <= maxAge ? "#3eea9a" : "#ffaa4d",
+        color: "#00151f",
+        weight: 1,
+        fillOpacity: 0.9
       });
-    }
 
-    document.getElementById("reloadBtn").addEventListener("click", renderFloats);
-    document.getElementById("ageDays").addEventListener("input", e => {
-      document.getElementById("ageLabel").textContent = e.target.value;
-      renderFloats();
+      marker.bindPopup(`
+        <div class="popup-card">
+          <div class="popup-header">Argo Float #${f.platform}</div>
+          <div class="popup-row"><b>Country:</b> ${f.country}</div>
+          <div class="popup-row"><b>Project:</b> ${f.project}</div>
+          <div class="popup-row"><b>Last Report:</b> ${new Date(f.time).toLocaleString()}</div>
+          <div class="popup-row"><b>Position:</b> ${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}</div>
+          <div class="popup-data">
+            <div class="data-box"><div>🌡 Temp</div><div class="value">${f.temperature}°C</div></div>
+            <div class="data-box"><div>🧂 Salinity</div><div class="value">${f.salinity}</div></div>
+          </div>
+        </div>
+      `);
+
+      cluster.addLayer(marker);
     });
-    document.getElementById("searchBox").addEventListener("input", () => setTimeout(renderFloats, 300));
+  }
 
-    renderFloats();
-
-    // Store custom pins
-const customPins = [];
-
-// Add pin on map click
-map.on("click", function (e) {
-  const { lat, lng } = e.latlng;
-
-  const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-
-  marker.bindPopup(`
-    <div class="popup-card">
-      <div class="popup-header">📍 Custom Pin</div>
-      <div class="popup-body">
+  // --- CUSTOM PINS ---
+  const customPins = [];
+  map.on("click", e => {
+    const { lat, lng } = e.latlng;
+    const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    marker.bindPopup(`
+      <div class="popup-card">
+        <div class="popup-header">📍 Custom Pin</div>
         <div class="popup-row"><b>Lat:</b> ${lat.toFixed(4)}</div>
         <div class="popup-row"><b>Lng:</b> ${lng.toFixed(4)}</div>
         <button onclick="deleteCustomPin(${customPins.length})">Delete Pin</button>
       </div>
-    </div>
-  `);
-
-  customPins.push(marker);
-});
-
-// Delete pin by index
-function deleteCustomPin(index) {
-  if (customPins[index]) {
-    map.removeLayer(customPins[index]);
-    customPins[index] = null;
-  }
-}
-
- 
-  </script>
-
-<!-- Floating Chatbot -->
-<div id="chatToggle">💬</div>
-<div id="chatbot">
-  <div id="chatHeader">Chatbot ✖</div>
-  <div id="chatMessages"></div>
-  <div id="chatInput">
-    <input type="text" id="chatText" placeholder="Type a message..." />
-    <button id="sendBtn">Send</button>
-  </div>
-</div>
-
-<style>
-  /* Floating toggle button */
-  #chatToggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: #1f6feb;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-    z-index: 2001;
-    transition: transform 0.2s, background 0.2s;
-  }
-  #chatToggle:hover {
-    background: #238636;
-    transform: scale(1.1);
+    `);
+    customPins.push(marker);
+  });
+  function deleteCustomPin(index) {
+    if (customPins[index]) {
+      map.removeLayer(customPins[index]);
+      customPins[index] = null;
+    }
   }
 
-  /* Chatbot container */
-  #chatbot {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 320px;
-    max-height: 450px;
-    display: none; /* hidden by default */
-    flex-direction: column;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #161b22;
-    border: 1px solid #30363d;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.7);
-    z-index: 2000;
-  }
-
-  #chatHeader {
-    background: #1f6feb;
-    padding: 10px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: "Inter", sans-serif;
-  }
-
-  #chatMessages {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    font-size: 14px;
-    color: #e6edf3;
-    background: #0e1117;
-    font-family: "Inter", sans-serif;
-  }
-
-  #chatInput {
-    display: flex;
-    border-top: 1px solid #30363d;
-    background: #161b22;
-  }
-
-  #chatInput input {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    outline: none;
-    font-size: 14px;
-    background: #0e1117;
-    color: #e6edf3;
-    font-family: "Inter", sans-serif;
-  }
-
-  #chatInput button {
-    padding: 10px 14px;
-    border: none;
-    cursor: pointer;
-    background: #1f6feb;
-    color: white;
-    font-weight: bold;
-    transition: background 0.2s;
-  }
-  #chatInput button:hover {
-    background: #238636;
-  }
-</style>
-<script>
-  const chatToggle = document.getElementById("chatToggle");
+  // --- CHAT & TOGGLE LOGIC ---
   const chatbot = document.getElementById("chatbot");
-  const chatHeader = document.getElementById("chatHeader");
+  const mapDiv = document.getElementById("map");
+  const toolbar = document.getElementById("toolbar");
+  const chatToggle = document.getElementById("chatToggle");
+  const openMapBtn = document.getElementById("openMapBtn");
   const chatMessages = document.getElementById("chatMessages");
   const chatText = document.getElementById("chatText");
   const sendBtn = document.getElementById("sendBtn");
 
-  // ✅ Toggle open/close when clicking bubble
-  chatToggle.onclick = () => {
-    chatbot.style.display = chatbot.style.display === "flex" ? "none" : "flex";
-  };
-
-  // Close when clicking ✖
-  chatHeader.onclick = () => {
+  openMapBtn.onclick = () => {
     chatbot.style.display = "none";
+    mapDiv.style.display = "block";
+    toolbar.style.display = "flex";
+    chatToggle.style.display = "flex";
+    renderFloats();
   };
 
-  // Handle sending messages
+  chatToggle.onclick = () => {
+    chatbot.style.display = "flex";
+    mapDiv.style.display = "none";
+    toolbar.style.display = "none";
+    chatToggle.style.display = "none";
+  };
+
   sendBtn.onclick = () => {
     const msg = chatText.value.trim();
     if (!msg) return;
-
-    const userMsg = document.createElement("div");
-    userMsg.style.margin = "5px 0";
-    userMsg.innerHTML = `<b>You:</b> ${msg}`;
-    chatMessages.appendChild(userMsg);
-
-    const botMsg = document.createElement("div");
-    botMsg.style.margin = "5px 0";
-    botMsg.innerHTML = `<b>Bot:</b> I’m just a static demo 🤖`;
-    chatMessages.appendChild(botMsg);
-
+    chatMessages.innerHTML += `<div><b>You:</b> ${msg}</div>`;
+    chatMessages.innerHTML += `<div><b>Bot:</b> I'm just a demo 🤖. Click 🌍 Open Map to see floats.</div>`;
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatText.value = "";
   };
-
-  // Send with Enter key
-  chatText.addEventListener("keydown", e => {
-    if (e.key === "Enter") sendBtn.click();
-  });
+  chatText.addEventListener("keydown", e => { if (e.key === "Enter") sendBtn.click(); });
 </script>
-
-
-  
 </body>
 </html>
