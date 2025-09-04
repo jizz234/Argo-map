@@ -2,540 +2,257 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ArgoNav — Navy Assistant</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ArgoNav 🌊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet & MarkerCluster -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- MarkerCluster -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
-    /* ---------- Variables & base ---------- */
-    :root{
-      --bg: #0a0f14;
-      --panel: #0d1419;
-      --muted: #8b949e;
-      --accent: #58a6ff;
-      --accent2: #00d084;
-      --glass: rgba(255,255,255,0.03);
-    }
-    html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, sans-serif;background:var(--bg);color:#e6edf3;overflow:hidden}
-    a{color:var(--accent)}
-
-    /* ---------- App grid ---------- */
-    #app {
-      height:100vh;
-      width:100vw;
-      position:relative;
-      display:grid;
-      grid-template-columns: 1fr 380px;
-      grid-template-rows: auto 1fr;
-      gap:0;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: #0e1117;
+      color: #e6edf3;
     }
 
-    /* ---------- Splash (full-screen overlay) ---------- */
+    /* ---------------- Splash ---------------- */
     #splash {
-      position:fixed; inset:0; z-index:2200;
-      display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(180deg,#03060a 0%, #07101a 60%, #071018 100%);
-      overflow:hidden;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url("https://i.ibb.co/xGqV1xD/dark-ocean-texture.jpg") center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 3000;
+      transition: transform 1s ease;
     }
-    /* animated waves */
-    .waves {
-      position:absolute; left:0; right:0; bottom:-10%;
-      height:60%;
-      background:
-        radial-gradient(closest-side, rgba(88,166,255,0.06), transparent 60%),
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 40px);
-      filter: blur(18px);
-      transform-origin:center;
-      animation: slowFloat 12s linear infinite;
-      opacity:0.55;
-    }
-    .waves::before, .waves::after {
-      content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.12));
-    }
-    @keyframes slowFloat { 0%{transform:translateY(0)}50%{transform:translateY(-18px)}100%{transform:translateY(0)} }
+    #splash.hidden { transform: translateY(-100%); }
 
-    .splash-inner {
-      z-index:2201;
-      width:920px; max-width:94vw; display:flex; gap:40px; align-items:center; justify-content:center;
-    }
-    .splash-left { flex:0 0 320px; display:flex; flex-direction:column; align-items:center; gap:16px; }
-    .splash-right { flex:1; color:#cfe9ff; font-size:16px; line-height:1.45; }
-
-    /* logo box */
-    .logo-large {
-      width:140px; height:140px; border-radius:18px; display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(180deg, rgba(88,166,255,0.08), rgba(0,208,132,0.03));
-      border:1px solid rgba(255,255,255,0.03); box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-    }
-
-    .splash-title { font-size:28px; font-weight:800; color:#e6eef8; margin:0; }
-    .splash-sub { color:var(--muted); font-size:14px; margin:0; }
-
-    .start-btn {
-      margin-top:8px; padding:12px 18px; border-radius:12px; border:0; cursor:pointer;
-      background: linear-gradient(135deg,var(--accent), #00c6ff); color:#041026; font-weight:700;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .ghost { background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted) }
-
-    /* ---------- Logo top-left avatar ---------- */
     #logo {
-      position:absolute; top:14px; left:14px; z-index:1500; display:flex;align-items:center;gap:10px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      padding:8px 10px;border-radius:10px;backdrop-filter: blur(6px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.03);
+      width: 180px;
+      height: auto;
+      margin-bottom: 20px;
+      animation: fadeIn 2s ease forwards;
     }
-    #logo svg{width:36px;height:36px}
-    #logo .title{font-weight:700;color:#e6edf3;font-size:14px;line-height:1}
-    #logo .sub{font-size:11px;color:var(--muted);line-height:1}
+    #splash h1 {
+      font-size: 28px;
+      margin: 10px 0;
+      color: #58a6ff;
+      animation: fadeIn 3s ease forwards;
+    }
+    #splash p {
+      font-size: 16px;
+      margin-bottom: 30px;
+      color: #c9d1d9;
+      animation: fadeIn 4s ease forwards;
+    }
+    #startBtn {
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1f6feb, #238636);
+      color: white;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #startBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.8);
+    }
 
-    /* ---------- Toolbar (top center) ---------- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------------- Map + Toolbar ---------------- */
+    #map {
+      width: 100%;
+      height: 100%;
+      display: none; /* hidden until splash ends */
+    }
     #toolbar {
-      position:absolute; left:50%; transform:translateX(-50%); top:18px; z-index:1400;
-      background: rgba(12,16,22,0.8); padding:10px 14px;border-radius:999px;
-      display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.6);
-      backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,0.03);
-      display:none;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 23, 30, 0.9);
+      padding: 10px 14px;
+      border-radius: 50px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      align-items: center;
+      backdrop-filter: blur(12px);
     }
-    .field{display:flex;align-items:center;background:#071018;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
-    .field input{background:transparent;border:0;color:#e6edf3;outline:none;width:180px;padding:6px}
-    .field label{color:var(--muted);margin-right:8px;font-size:13px}
-    #toolbar button{border:0;background:linear-gradient(135deg,var(--accent),#00c6ff);color:white;padding:8px 12px;border-radius:999px;cursor:pointer}
-
-    /* ---------- Map ---------- */
-    #map { grid-column:1/2; grid-row:1/3; height:100%; width:100%; z-index:100; display:none }
-
-    /* ---------- Side Panel (Euro-Argo style) ---------- */
-    #panel {
-      grid-column:2/3; grid-row:1/3; height:100%; background: linear-gradient(180deg,#071018,#0b131b);
-      border-left:1px solid rgba(255,255,255,0.03); padding:18px; box-sizing:border-box;
-      display:flex;flex-direction:column; gap:12px; z-index:1200;
+    .field {
+      display: flex;
+      align-items: center;
+      background: #1c212c;
+      border-radius: 30px;
+      padding: 6px 12px;
+      border: 1px solid #2d333b;
     }
-    #panel.hidden{display:none}
-    .head{display:flex;align-items:center;gap:12px}
-    .head h2{margin:0;font-size:16px}
-    .meta{color:var(--muted);font-size:13px}
-
-    .float-card{background:linear-gradient(180deg,#051018,#07121a);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
-    .float-card .row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:14px}
-    .float-card small{color:var(--muted)}
-    .stat-grid{display:flex;gap:8px;margin-top:8px}
-    .stat{flex:1;background:#07101a;padding:10px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.03)}
-    .stat .val{font-weight:700;color:var(--accent);font-size:16px}
-    .stat .lbl{font-size:12px;color:var(--muted)}
-
-    .spark{height:48px;width:100%;display:block}
-
-    /* ---------- Chat widget ---------- */
-    #chatbot {
-      position: fixed; bottom:20px; right:20px; width:360px; max-height:520px; z-index:1600;
-      background:#0b1116;border:1px solid rgba(255,255,255,0.03);border-radius:12px;overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,0.6);display:flex;flex-direction:column;
+    .field input,
+    .field select {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+      min-width: 120px;
+      color: #e6edf3;
     }
-    #chatbot .header{background:linear-gradient(90deg,var(--accent),#00c6ff);padding:12px;color:white;font-weight:700;display:flex;justify-content:space-between;align-items:center}
-    #chatbot .msgs{padding:12px;overflow:auto;flex:1;background:linear-gradient(180deg,#071018,#091018);color:#e6edf3}
-    #chatbot .input{display:flex;padding:10px;border-top:1px solid rgba(255,255,255,0.02);gap:8px}
-    #chatbot input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e6edf3}
-    #chatbot button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#041026;cursor:pointer}
+    .field input::placeholder { color: #8b949e; }
 
-    /* chat floating toggle (bubble) */
-    #chatToggle { position: fixed; bottom:20px; right:20px; width:52px;height:52px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#041026;font-weight:700;z-index:1650;box-shadow:0 8px 20px rgba(0,0,0,0.6);cursor:pointer;display:none }
+    button {
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1f6feb, #238636);
+      color: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.6);
+    }
 
-    /* popups override for dark style */
-    .leaflet-popup-content-wrapper { background:#0b1116 !important; color:#e6edf3 !important; border-radius:8px; border:1px solid rgba(255,255,255,0.03) !important; }
-    .leaflet-popup-tip { background:#0b1116 !important; border:1px solid rgba(255,255,255,0.03) !important; }
-
-    /* cluster dark theme */
-    .marker-cluster-small { background-color: rgba(88,166,255,0.18) !important; border:2px solid #58a6ff !important; color:#e6edf3 !important; }
-    .marker-cluster-medium { background-color: rgba(35,134,54,0.18) !important; border:2px solid #2ea043 !important; color:#e6edf3 !important; }
-    .marker-cluster-large { background-color: rgba(201,109,0,0.18) !important; border:2px solid #db6d28 !important; color:#e6edf3 !important; }
-    .marker-cluster div { background:transparent !important; font-weight:700; color:#e6edf3 !important; }
-
-    /* responsive: on small screens panel becomes sliding overlay */
-    @media (max-width:900px){
-      #app{grid-template-columns:1fr; grid-template-rows:auto 1fr}
-      #panel{position:fixed; right:0; top:0; bottom:0; width:86%; transform:translateX(100%); transition:transform 220ms; box-shadow:-20px 0 60px rgba(0,0,0,0.7)}
-      #panel.open{transform:translateX(0)}
-      #map{grid-column:1/2; grid-row:1/3}
-      #toolbar{left:12px; transform:none; top:78px}
-      #logo{left:12px}
-      #chatbot{right:12px; bottom:12px}
-      #chatToggle{right:12px; bottom:12px}
-      .splash-inner{max-width:96vw}
+    /* ---------------- Chatbot Bubble ---------------- */
+    #chatToggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 55px;
+      height: 55px;
+      background: #1f6feb;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      z-index: 2001;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <!-- Map -->
-    <div id="map" aria-hidden="true"></div>
-
-    <!-- Side panel -->
-    <aside id="panel" class="hidden" aria-hidden="true">
-      <div class="head">
-        <div>
-          <h2 id="panelTitle">No float selected</h2>
-          <div class="meta" id="panelSubtitle">Open the map to start exploring.</div>
-        </div>
-        <div style="margin-left:auto"><button id="closePanel">Close</button></div>
-      </div>
-
-      <div id="panelBody" style="margin-top:12px;flex:1;overflow:auto">
-        <div class="empty">Map is not open. Use the chatbot’s <strong>Open Map</strong> button to begin.</div>
-      </div>
-
-      <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px">
-        <div style="color:var(--muted);font-size:13px">Navy Assistant</div>
-        <div><button id="panelOpenMap">Open Map</button></div>
-      </div>
-    </aside>
-
-    <!-- top toolbar -->
-    <div id="toolbar" role="toolbar" aria-hidden="true">
-      <div class="field"><input id="searchBox" placeholder="Search ID or country..." /></div>
-      <div class="field"><label>Max age</label><input id="ageDays" type="range" min="1" max="365" value="90" /><span id="ageLabel" style="color:var(--muted);margin-left:8px">90d</span></div>
-      <button id="reloadBtn">Reload</button>
-    </div>
-  </div>
-
-  <!-- Logo top-left -->
-  <div id="logo" aria-hidden="true">
-    <!-- stylized SVG logo -->
-    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#58a6ff"/><stop offset="1" stop-color="#00d084"/></linearGradient>
-      </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#lg)" opacity="0.10"/>
-      <path d="M32 14v26" stroke="url(#lg)" stroke-width="3.2" stroke-linecap="round"/>
-      <path d="M22 38a10 10 0 0 0 20 0" stroke="#00d084" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-      <circle cx="32" cy="44" r="2.6" fill="#58a6ff"/>
+  <!-- Splash Screen -->
+  <div id="splash">
+    <!-- Custom SVG logo -->
+    <svg id="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="#1f6feb" stroke="#58a6ff" stroke-width="6"/>
+      <path d="M50 120 Q100 40 150 120" stroke="#fff" stroke-width="6" fill="none"/>
+      <text x="100" y="135" text-anchor="middle" font-size="22" fill="white" font-family="Arial">ArgoNav</text>
     </svg>
-    <div>
-      <div class="title">ArgoNav</div>
-      <div class="sub">Navy Assistant</div>
-    </div>
+    <h1>Explore the hidden currents of our oceans</h1>
+    <p>Your window into the world of Argo floats</p>
+    <button id="startBtn">Start Exploration</button>
   </div>
 
-  <!-- Splash screen (first view) -->
-  <div id="splash" role="dialog" aria-label="Welcome">
-    <div class="waves" aria-hidden="true"></div>
+  <!-- Map -->
+  <div id="map"></div>
 
-    <div class="splash-inner" role="presentation">
-      <div class="splash-left">
-        <div class="logo-large" aria-hidden="true">
-          <!-- same logo but bigger -->
-          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <defs><linearGradient id="lg2" x1="0" x2="1"><stop offset="0" stop-color="#58a6ff"/><stop offset="1" stop-color="#00d084"/></linearGradient></defs>
-            <circle cx="32" cy="32" r="30" fill="url(#lg2)" opacity="0.12"/>
-            <path d="M32 14v26" stroke="url(#lg2)" stroke-width="3.8" stroke-linecap="round"/>
-            <path d="M22 38a10 10 0 0 0 20 0" stroke="#00d084" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-            <circle cx="32" cy="46" r="3.2" fill="#58a6ff"/>
-          </svg>
-        </div>
-
-        <h1 class="splash-title">ArgoNav</h1>
-        <p class="splash-sub">Navy Assistant · Explore Argo floats & ocean data</p>
-
-        <button class="start-btn" id="startBtn">Start Exploration</button>
-        <button class="start-btn ghost" id="demoBtn" style="margin-top:8px">Quick Demo</button>
-      </div>
-
-      <div class="splash-right">
-        <h3 style="margin-top:0;color:#cfe9ff">Welcome, Captain</h3>
-        <p style="margin:0 0 12px 0;color:#9fbfdc">
-          ArgoNav helps you find floats, view recent measurements, and quickly inspect platform details.
-          Click <strong>Start Exploration</strong> to open the assistant, or try the quick demo for a fast preview.
-        </p>
-
-        <ul style="margin:12px 0 0 18px;color:#bcd9ff">
-          <li>Chat-first assistant (type: "open map", "show float 6904071")</li>
-          <li>Map with clustered floats & side-panel detail</li>
-          <li>Dark theme & offline-friendly demo data</li>
-        </ul>
-      </div>
+  <!-- Toolbar -->
+  <div id="toolbar" style="display:none;">
+    <div class="field">
+      <input type="text" id="searchBox" placeholder="🔍 Search float..." />
     </div>
+    <div class="field">
+      <label style="margin-right:6px;">Max age:</label>
+      <input type="range" id="ageDays" min="1" max="365" value="90">
+      <span id="ageLabel">90</span>d
+    </div>
+    <button id="reloadBtn">Reload</button>
   </div>
 
-  <!-- Chatbot (hidden behind splash until started) -->
-  <div id="chatbot" role="dialog" aria-label="Chatbot" style="display:none">
-    <div class="header" id="chatHeader">
-      <div>Ocean Assistant</div>
-      <div style="font-size:13px;opacity:0.95">v0.1</div>
-    </div>
+  <!-- Chatbot Bubble -->
+  <div id="chatToggle">💬</div>
 
-    <div class="msgs" id="chatMessages" aria-live="polite">
-      <div style="margin-bottom:8px"><b>Bot:</b> Welcome, Captain 👋 — say "open map" or "show float 6904071".</div>
-      <div style="margin-bottom:8px"><small style="color:var(--muted)">Tip: you can type a float ID to directly open its details.</small></div>
-    </div>
-
-    <div class="input">
-      <input id="chatText" placeholder="Ask: 'open map' or 'show float 6904071'..." />
-      <button id="sendBtn">Send</button>
-    </div>
-
-    <div style="padding:10px;display:flex;gap:8px;justify-content:flex-end">
-      <button id="openMapBtn">🌍 Open Map</button>
-    </div>
-  </div>
-
-  <!-- Chat toggle bubble -->
-  <div id="chatToggle" title="Open chat" style="display:none">💬</div>
-
-<script>
-/* ===========================
-   Demo data & state
-   =========================== */
-const sampleFloats = [
-  { id:"6904071", lat:37.7749, lon:-122.4194, country:"USA", project:"Euro-Argo", time:"2025-08-25T12:00:00Z", temperature:14.2, salinity:35.1 },
-  { id:"6904072", lat:-33.8688, lon:151.2093, country:"Australia", project:"Argo", time:"2025-08-20T15:30:00Z", temperature:18.5, salinity:34.8 },
-  { id:"6904073", lat:35.6895, lon:139.6917, country:"Japan", project:"JMA", time:"2025-08-18T09:15:00Z", temperature:20.1, salinity:34.6 }
-];
-
-let map=null, cluster=null, floatMarkers={}, customPins=[];
-
-/* ===========================
-   Splash handlers
-   =========================== */
-const splash = document.getElementById('splash');
-const startBtn = document.getElementById('startBtn');
-const demoBtn = document.getElementById('demoBtn');
-const chatbot = document.getElementById('chatbot');
-const chatToggle = document.getElementById('chatToggle');
-const openMapBtnInline = document.getElementById('openMapBtnInline'); // may be null
-const openMapBtn = document.getElementById('openMapBtn');
-const panel = document.getElementById('panel');
-
-function showChatbotFromSplash(){
-  // hide splash, show chatbot
-  splash.style.display = 'none';
-  chatbot.style.display = 'flex';
-  // ensure chat bubble hidden until map opens
-  chatToggle.style.display = 'none';
-  // panel & toolbar hidden until map opened
-  document.getElementById('toolbar').style.display = 'none';
-  document.getElementById('map').style.display = 'none';
-  panel.classList.add('hidden');
-}
-
-// Start button -> open chatbot
-startBtn.onclick = () => {
-  showChatbotFromSplash();
-};
-
-// Quick demo -> open chatbot and a bit of demo chat
-demoBtn.onclick = () => {
-  showChatbotFromSplash();
-  setTimeout(()=> {
-    addChat('Bot', 'Demo: try "open map" or type a float ID like 6904071.');
-  },200);
-};
-
-/* ===========================
-   Initialize map lazily
-   =========================== */
-function initMapIfNeeded(){
-  if (map) return;
-  map = L.map('map', { worldCopyJump:true, minZoom:2 }).setView([10,0],2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
-  cluster = L.markerClusterGroup({ disableClusteringAtZoom:6, chunkedLoading:true });
-  map.addLayer(cluster);
-
-  // click to add custom pin
-  map.on('click', e => {
-    const {lat,lng} = e.latlng;
-    const idx = customPins.length;
-    const marker = L.marker([lat,lng], { draggable:true }).addTo(map);
-    marker.bindPopup(`<div style="min-width:180px;padding:6px;background:#071018;color:#e6edf3;border-radius:6px">
-      <div style="font-weight:700">📍 Custom Pin</div>
-      <div style="margin-top:6px"><small>Lat:</small> ${lat.toFixed(4)}</div>
-      <div><small>Lng:</small> ${lng.toFixed(4)}</div>
-      <div style="margin-top:8px"><button onclick="deleteCustomPin(${idx})">Delete</button></div>
-    </div>`);
-    marker.on('contextmenu', () => { map.removeLayer(marker); });
-    customPins.push(marker);
-  });
-
-  // render floats now that map exists
-  renderFloats();
-}
-
-/* ===========================
-   Render floats clustered
-   =========================== */
-function renderFloats(){
-  if (!cluster) return;
-  cluster.clearLayers();
-  floatMarkers = {};
-  sampleFloats.forEach(f => {
-    const ageDays = Math.round((Date.now() - new Date(f.time))/864e5);
-    const marker = L.circleMarker([f.lat,f.lon], {
-      radius: 7, fillColor: ageDays <= +document.getElementById('ageDays').value ? "#3eea9a" : "#ffaa4d",
-      color:"#00151f", weight:1, fillOpacity:0.95
+  <script>
+    // Splash screen logic
+    document.getElementById("startBtn").addEventListener("click", () => {
+      document.getElementById("splash").classList.add("hidden");
+      setTimeout(() => {
+        document.getElementById("splash").style.display = "none";
+        document.getElementById("map").style.display = "block";
+        document.getElementById("toolbar").style.display = "flex";
+        initMap();
+      }, 1000);
     });
-    marker.on('click', ()=> openPanelForFloat(f));
-    marker.bindTooltip(`#${f.id}`, {direction:'top', offset:[0,-10], permanent:false, className:'float-tooltip'});
-    cluster.addLayer(marker);
-    floatMarkers[f.id] = marker;
-  });
-}
 
-/* ===========================
-   Side panel (Euro-Argo style)
-   =========================== */
-const panelTitle = document.getElementById('panelTitle');
-const panelSubtitle = document.getElementById('panelSubtitle');
-const panelBody = document.getElementById('panelBody');
-const closePanel = document.getElementById('closePanel');
+    // Sample floats (static for demo)
+    const sampleFloats = [
+      { lat: 37.77, lon: -122.42, platform: "490001", country: "USA", time: "2025-08-25T12:00:00Z" },
+      { lat: -33.87, lon: 151.21, platform: "490002", country: "Australia", time: "2025-08-20T15:30:00Z" },
+      { lat: 35.68, lon: 139.69, platform: "490003", country: "Japan", time: "2025-08-18T09:15:00Z" }
+    ];
 
-function openPanelForFloat(f){
-  // ensure map visible
-  document.getElementById('map').style.display = 'block';
-  document.getElementById('toolbar').style.display = 'flex';
-  chatToggle.style.display = 'flex';
-  if (!map) initMapIfNeeded();
+    let map, cluster;
+    function initMap() {
+      map = L.map('map').setView([20, 0], 2);
 
-  panel.classList.remove('hidden');
-  if (window.matchMedia('(max-width:900px)').matches) panel.classList.add('open');
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OSM &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
 
-  panelTitle.textContent = `Float ${f.id}`;
-  panelSubtitle.textContent = `${f.country} · ${f.project}`;
+      cluster = L.markerClusterGroup({ disableClusteringAtZoom: 6 });
+      map.addLayer(cluster);
 
-  panelBody.innerHTML = `
-    <div class="float-card">
-      <div class="row"><div><strong>ID</strong></div><div>#${f.id}</div></div>
-      <div class="row"><div><small>Country</small></div><div>${f.country}</div></div>
-      <div class="row"><div><small>Project</small></div><div>${f.project}</div></div>
-      <div class="row"><div><small>Last report</small></div><div>${new Date(f.time).toLocaleString()}</div></div>
+      renderFloats();
+    }
 
-      <div class="stat-grid" style="margin-top:12px">
-        <div class="stat"><div class="val">${f.temperature.toFixed(1)}°C</div><div class="lbl">Temperature</div></div>
-        <div class="stat"><div class="val">${f.salinity.toFixed(2)}</div><div class="lbl">Salinity</div></div>
-      </div>
+    function renderFloats() {
+      cluster.clearLayers();
+      const maxAge = +document.getElementById("ageDays").value;
+      const search = document.getElementById("searchBox").value.trim().toLowerCase();
 
-      <div style="margin-top:12px">
-        <small style="color:var(--muted)">Recent temperature profile (mock)</small>
-        <svg class="spark" id="spark-${f.id}" viewBox="0 0 100 48" preserveAspectRatio="none"></svg>
-      </div>
+      sampleFloats.forEach(f => {
+        const ageDays = (Date.now() - new Date(f.time)) / 864e5;
+        if (ageDays > maxAge) return;
+        if (search && !f.country.toLowerCase().includes(search) && !f.platform.includes(search)) return;
 
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button id="panelCenter">Center on map</button><button id="panelClose">Close</button>
-      </div>
+        const marker = L.circleMarker([f.lat, f.lon], {
+          radius: 6,
+          fillColor: "#3eea9a",
+          color: "#00151f",
+          weight: 1,
+          fillOpacity: 0.9
+        });
 
-      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
-        <div style="color:var(--muted);font-size:13px">Platform info</div>
-        <div><button id="downloadBtn">Download CSV</button></div>
-      </div>
-    </div>
-  `;
+        marker.bindPopup(`<b>Float #${f.platform}</b><br>Country: ${f.country}<br>Last Report: ${new Date(f.time).toLocaleString()}`);
+        cluster.addLayer(marker);
+      });
+    }
 
-  // draw a small sparkline for demo
-  drawSparkline(`spark-${f.id}`, generateSeries(f.temperature));
-
-  document.getElementById('panelCenter').onclick = () => {
-    map.setView([f.lat,f.lon],6,{animate:true});
-  };
-  document.getElementById('panelClose').onclick = () => { panel.classList.add('hidden'); panel.classList.remove('open'); };
-
-  document.getElementById('downloadBtn').onclick = () => {
-    const csv = `time,temperature,salinity\n${new Date().toISOString()},${f.temperature},${f.salinity}\n`;
-    const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `float_${f.id}.csv`; a.click(); URL.revokeObjectURL(url);
-  };
-}
-
-closePanel.onclick = () => { panel.classList.add('hidden'); panel.classList.remove('open'); };
-
-/* ===========================
-   Chat & open map flow
-   =========================== */
-const panelOpenMap = document.getElementById('panelOpenMap');
-panelOpenMap.onclick = openMapFromChat;
-openMapBtn.onclick = openMapFromChat;
-
-function openMapFromChat(){
-  chatbot.style.display = 'none';
-  document.getElementById('map').style.display = 'block';
-  document.getElementById('toolbar').style.display = 'flex';
-  chatToggle.style.display = 'flex';
-  initMapIfNeeded();
-  renderFloats();
-  panel.classList.remove('hidden');
-  panelSubtitle.textContent = 'Click a float on the map for details';
-  if (window.matchMedia('(max-width:900px)').matches) panel.classList.add('open');
-}
-
-/* chat bubble toggles back to chat view */
-chatToggle.onclick = () => {
-  chatbot.style.display = 'flex';
-  document.getElementById('map').style.display = 'none';
-  document.getElementById('toolbar').style.display = 'none';
-  chatToggle.style.display = 'none';
-  panel.classList.add('hidden'); panel.classList.remove('open');
-};
-
-/* chat send logic with quick actions */
-const sendBtn = document.getElementById('sendBtn');
-const chatText = document.getElementById('chatText');
-const chatMessages = document.getElementById('chatMessages');
-
-sendBtn.onclick = () => {
-  const msg = chatText.value.trim(); if (!msg) return;
-  addChat('You', msg);
-  setTimeout(()=> {
-    const lower = msg.toLowerCase();
-    if (lower.includes('open') && lower.includes('map')) { addChat('Bot','Opening the map...'); openMapFromChat(); }
-    else if (/\d{6,7}/.test(lower)) {
-      const id = lower.match(/\d{6,7}/)[0];
-      const found = sampleFloats.find(s=>s.id===id);
-      if (found) { addChat('Bot', `Found float ${id}. Opening details.`); openPanelForFloat(found); openMapFromChat(); }
-      else addChat('Bot','No matching float in demo data.');
-    } else if (lower.includes('help')) addChat('Bot','Try: "open map", "show float 6904071", or type a float ID.');
-    else addChat('Bot','I can open the map or show float details. Try "open map".');
-  },300);
-  chatText.value='';
-};
-chatText.addEventListener('keydown', e=> { if (e.key==='Enter') sendBtn.click(); });
-
-function addChat(who, text){ const el = document.createElement('div'); el.style.margin='8px 0'; el.innerHTML = `<b>${who}:</b> ${text}`; chatMessages.appendChild(el); chatMessages.scrollTop = chatMessages.scrollHeight; }
-
-/* ===========================
-   Utilities: sparkline & fake series
-   =========================== */
-function generateSeries(base){ const out=[]; for(let i=0;i<20;i++) out.push(base + (Math.random()-0.5)*1.8); return out; }
-function drawSparkline(svgId, values){
-  const svg = document.getElementById(svgId); if(!svg) return;
-  const w=100,h=48,pad=4; const min=Math.min(...values), max=Math.max(...values);
-  const scaleY=v => h - pad - ((v - min) / (max - min || 1)) * (h - 2*pad);
-  const scaleX=i => pad + (i/(values.length-1))*(w-2*pad);
-  let d=''; values.forEach((v,i)=> { const x=scaleX(i), y=scaleY(v); d += (i===0?`M ${x} ${y}`:` L ${x} ${y}`); });
-  svg.innerHTML = `<path d="${d}" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#58a6ff'}" stroke-width="2.0" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>`;
-}
-
-/* ===========================
-   Controls & filters wiring
-   =========================== */
-document.getElementById('reloadBtn').addEventListener('click', ()=> { if (!map) initMapIfNeeded(); renderFloats(); });
-document.getElementById('ageDays').addEventListener('input', e=> { document.getElementById('ageLabel').textContent = e.target.value + 'd'; if (map) renderFloats(); });
-document.getElementById('searchBox').addEventListener('input', ()=> { if (map) setTimeout(renderFloats, 200); });
-
-/* delete custom pin function (global for inline delete button) */
-window.deleteCustomPin = function(index){ if (customPins[index]) { map.removeLayer(customPins[index]); customPins[index] = null; } };
-
-/* On load: show splash */
-window.addEventListener('load', ()=> {
-  splash.style.display = 'flex';
-  chatbot.style.display = 'none';
-  document.getElementById('map').style.display = 'none';
-  document.getElementById('toolbar').style.display = 'none';
-  panel.classList.add('hidden');
-  chatToggle.style.display = 'none';
-});
-</script>
+    document.getElementById("reloadBtn").addEventListener("click", renderFloats);
+    document.getElementById("ageDays").addEventListener("input", e => {
+      document.getElementById("ageLabel").textContent = e.target.value;
+      renderFloats();
+    });
+    document.getElementById("searchBox").addEventListener("input", () => setTimeout(renderFloats, 300));
+  </script>
 </body>
 </html>
