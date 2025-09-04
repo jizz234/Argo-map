@@ -22,9 +22,10 @@
       font-family: "Inter", "Segoe UI", sans-serif;
       background: #0e1117;
       color: #e6edf3;
+      overflow: hidden;
     }
 
-    /* ---------------- Splash ---------------- */
+    /* ----------- Splash ----------- */
     #splash {
       position: fixed;
       top: 0; left: 0;
@@ -42,7 +43,6 @@
 
     #logo {
       width: 180px;
-      height: auto;
       margin-bottom: 20px;
       animation: fadeIn 2s ease forwards;
     }
@@ -80,12 +80,14 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ---------------- Map + Toolbar ---------------- */
+    /* ----------- Map ----------- */
     #map {
       width: 100%;
       height: 100%;
-      display: none; /* hidden until splash ends */
+      display: none;
     }
+
+    /* ----------- Toolbar ----------- */
     #toolbar {
       position: absolute;
       top: 20px;
@@ -95,7 +97,7 @@
       padding: 10px 14px;
       border-radius: 50px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.6);
-      display: flex;
+      display: none;
       gap: 10px;
       z-index: 1000;
       align-items: center;
@@ -136,7 +138,7 @@
       box-shadow: 0 5px 14px rgba(0,0,0,0.6);
     }
 
-    /* ---------------- Chatbot Bubble ---------------- */
+    /* ----------- Chatbot Bubble ----------- */
     #chatToggle {
       position: fixed;
       bottom: 20px;
@@ -157,13 +159,12 @@
   </style>
 </head>
 <body>
-  <!-- Splash Screen -->
+  <!-- Splash -->
   <div id="splash">
-    <!-- Custom SVG logo -->
-    <svg id="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <svg id="logo" viewBox="0 0 200 200">
       <circle cx="100" cy="100" r="90" fill="#1f6feb" stroke="#58a6ff" stroke-width="6"/>
       <path d="M50 120 Q100 40 150 120" stroke="#fff" stroke-width="6" fill="none"/>
-      <text x="100" y="135" text-anchor="middle" font-size="22" fill="white" font-family="Arial">ArgoNav</text>
+      <text x="100" y="135" text-anchor="middle" font-size="22" fill="white">ArgoNav</text>
     </svg>
     <h1>Explore the hidden currents of our oceans</h1>
     <p>Your window into the world of Argo floats</p>
@@ -174,7 +175,7 @@
   <div id="map"></div>
 
   <!-- Toolbar -->
-  <div id="toolbar" style="display:none;">
+  <div id="toolbar">
     <div class="field">
       <input type="text" id="searchBox" placeholder="🔍 Search float..." />
     </div>
@@ -190,7 +191,7 @@
   <div id="chatToggle">💬</div>
 
   <script>
-    // Splash screen logic
+    // Splash transition
     document.getElementById("startBtn").addEventListener("click", () => {
       document.getElementById("splash").classList.add("hidden");
       setTimeout(() => {
@@ -201,7 +202,7 @@
       }, 1000);
     });
 
-    // Sample floats (static for demo)
+    // Sample data
     const sampleFloats = [
       { lat: 37.77, lon: -122.42, platform: "490001", country: "USA", time: "2025-08-25T12:00:00Z" },
       { lat: -33.87, lon: 151.21, platform: "490002", country: "Australia", time: "2025-08-20T15:30:00Z" },
@@ -209,6 +210,7 @@
     ];
 
     let map, cluster;
+
     function initMap() {
       map = L.map('map').setView([20, 0], 2);
 
@@ -222,6 +224,13 @@
       map.addLayer(cluster);
 
       renderFloats();
+
+      // Add custom pin on click
+      map.on("click", e => {
+        const marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+        marker.bindPopup(`📍 Custom Pin<br>Lat: ${e.latlng.lat.toFixed(4)}<br>Lng: ${e.latlng.lng.toFixed(4)}<br><button onclick="map.removeLayer(window.tempMarker)">❌ Remove</button>`).openPopup();
+        window.tempMarker = marker;
+      });
     }
 
     function renderFloats() {
@@ -241,12 +250,12 @@
           weight: 1,
           fillOpacity: 0.9
         });
-
         marker.bindPopup(`<b>Float #${f.platform}</b><br>Country: ${f.country}<br>Last Report: ${new Date(f.time).toLocaleString()}`);
         cluster.addLayer(marker);
       });
     }
 
+    // Toolbar controls
     document.getElementById("reloadBtn").addEventListener("click", renderFloats);
     document.getElementById("ageDays").addEventListener("input", e => {
       document.getElementById("ageLabel").textContent = e.target.value;
